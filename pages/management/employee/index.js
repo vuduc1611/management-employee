@@ -13,7 +13,10 @@ import { Dropdown } from "primereact/dropdown";
 import { DepartmentService } from "../../../demo/service/DepartmentService";
 import { PositionService } from "../../../demo/service/PositionService";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
+import employeeApi from "../../api/employeeApi";
 import { Tag } from "primereact/tag";
+import positionApi from "../../api/positionApi";
+import departmentApi from "../../api/departmentApi";
 
 const Crud = () => {
   const emptyEmployee = {
@@ -40,22 +43,22 @@ const Crud = () => {
     },
   ];
 
+  // const initSort = {
+  //   sortBy: "id",
+  //   sortDir: "ASC",
+  // };
   const initFilterParams = {
-    sort: {
-      sortBy: "id",
-      sortDir: "ASC",
-    },
-    filter: {
-      id: null,
-      fname: "",
-      lname: "",
-      departmentId: null,
-      positionId: null,
-    },
-    page: {
-      pageNum: 0,
-      size: 5,
-    },
+    sortBy: null,
+    sortDir: null,
+
+    id: null,
+    fname: null,
+    lname: null,
+    departmentId: null,
+    positionId: null,
+
+    page: null,
+    size: null,
   };
 
   const [submitted, setSubmitted] = useState(false);
@@ -80,6 +83,52 @@ const Crud = () => {
   const [filterParams, setFilterParams] = useState(initFilterParams);
 
   const [totalRecords, setTotalRecords] = useState(0);
+  const [first, setFirst] = useState(0);
+
+  // LazyParams
+  const [lazyParams, setLazyParams] = useState(initFilterParams);
+
+  const fetchData = async () => {
+    try {
+      // get data Employees
+      const resEmp = await employeeApi.getAll(lazyParams);
+      setEmployees(resEmp.content);
+      setTotalRecords(resEmp.totalElements);
+      setSize(resEmp.size);
+      console.log("chheck response em", resEmp.content);
+      //get data Position
+      const resPos = await positionApi.getAll();
+      setPositions(resPos);
+      console.log("chheck response pos", resPos);
+      // get data Department
+      const resDept = await departmentApi.getAll();
+      setDepartments(resDept);
+      console.log("chheck response dept", resDept);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [lazyParams]);
+
+  /*
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      try {
+        const response = await employeeApi.getAll(filterParams);
+        // console.log(response);
+        setTotalRecords(response.totalElements);
+        setSize(response.size);
+        setEmployees(response.content);
+      } catch (error) {
+        console.log("Failed to fetch data", error);
+      }
+    };
+    fetchEmployee();
+  }, [filterParams]);
+
   useEffect(() => {
     PositionService.getPositions().then((res) => {
       setPositions(res.data);
@@ -88,15 +137,9 @@ const Crud = () => {
     DepartmentService.getDepartments().then((res) => {
       setDepartments(res.data);
     });
-
-    EmployeeService.getEmployees().then((res) => {
-      setTotalRecords(res.data.totalElements);
-      setSize(res.data.size);
-      setEmployees(res.data.content);
-    });
     initFilters();
   }, []);
-
+*/
   const openNew = () => {
     setEmployee(emptyEmployee);
     setSubmitted(false);
@@ -105,35 +148,51 @@ const Crud = () => {
   const clearFilter = () => {
     initFilters();
   };
-  const onGlobalFilterChange = (e) => {
-    const value = e.target.value;
-    let _filters = { ...filters };
+  // const onGlobalFilterChange = (e) => {
+  //   const value = e.target.value;
+  //   let _filters = { ...filters };
 
-    _filters["global"].value = value;
+  //   _filters["global"].value = value;
 
-    setFilters(_filters);
-    setGlobalFilterValue(value);
+  //   setFilters(_filters);
+  //   setGlobalFilterValue(value);
+  // };
+  const onGlobalFilterClick = (event) => {
+    console.log(event);
+    // setFilters(_filters);
+    // setGlobalFilterValue(value);
   };
 
+  // const initFilters = () => {
+  //   setFilters({
+  //     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  //     // id: { value: null, matchMode: FilterMatchMode.EQUALS },
+  //     id: {
+  //       constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+  //     },
+  //     fname: {
+  //       // operator: FilterOperator.AND,
+  //       constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
+  //     },
+  //     lname: {
+  //       // operator: FilterOperator.AND,
+  //       constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
+  //     },
+  //     departmentId: { value: null, matchMode: FilterMatchMode.EQUALS },
+  //     positionId: { value: null, matchMode: FilterMatchMode.EQUALS },
+  //   });
+  //   setGlobalFilterValue("");
+  // };
+
   const initFilters = () => {
+    setLazyParams(initFilterParams);
     setFilters({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      // id: { value: null, matchMode: FilterMatchMode.EQUALS },
-      id: {
-        constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-      },
-      fname: {
-        // operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
-      },
-      lname: {
-        // operator: FilterOperator.AND,
-        constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
-      },
-      departmentId: { value: null, matchMode: FilterMatchMode.EQUALS },
-      positionId: { value: null, matchMode: FilterMatchMode.EQUALS },
+      id: { value: null },
+      fname: { value: null },
+      lname: { value: null },
+      positionId: { value: null },
+      departmentId: { value: null },
     });
-    setGlobalFilterValue("");
   };
 
   const deptItem = (option) => {
@@ -388,7 +447,11 @@ const Crud = () => {
   };
 
   const getPositionName = (positionId) => {
-    return positions.find((p) => p.id === positionId)?.name;
+    const curPos = positions?.find((p) => p.id === positionId);
+    if (curPos) {
+      return curPos.name;
+    }
+    // return positions.find((p) => p.id === positionId)?.name;
   };
 
   const positionBodyTemplate = (rowData) => {
@@ -401,7 +464,10 @@ const Crud = () => {
   };
 
   const getDepartmentName = (departmentId) => {
-    return departments.find((d) => d.departmentId === departmentId)?.name;
+    const curDept = departments?.find((p) => p.departmentId === departmentId);
+    if (curDept) {
+      return curDept.name;
+    }
   };
 
   const departmentBodyTemplate = (rowData) => {
@@ -417,12 +483,30 @@ const Crud = () => {
     <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
       <h5 className="m-0">Manage Employees</h5>
       <span className="block mt-2 md:mt-0 p-input-icon-left">
-        <i className="pi pi-search" />
-        <InputText
-          type="search"
+        {/* <i className="pi pi-search" /> */}
+        {/* <InputText
+          type="button"
           value={globalFilterValue}
           onChange={onGlobalFilterChange}
           placeholder="Search..."
+        /> */}
+        {/* <Button
+          label="Clean"
+          // icon="pi pi-search"
+          onClick={(e) => {
+            onGlobalFilterClick(e);
+          }}
+          severity="warning"
+          className="mr-2 w-7rem"
+        /> */}
+
+        <Button
+          type="button"
+          icon="pi pi-filter-slash"
+          label="Clear"
+          outlined
+          onClick={clearFilter}
+          className="mr-2 w-7rem"
         />
       </span>
     </div>
@@ -527,26 +611,53 @@ const Crud = () => {
       </>
     );
   };
+  // here
+  const listenOnFliedSort = (e) => {
+    const { sortField, sortOrder } = e;
+    const { sortDir, sortBy } = lazyParams;
+    if (sortField === null) {
+      return "ASC";
+    }
+    if (sortField === sortBy) {
+      return sortDir === "ASC" ? "DESC" : "ASC";
+    }
+    return "DESC";
+  };
+
+  const handleOnPage = (e) => {
+    setFirst(e.first);
+    setLazyParams({ ...lazyParams, page: e.page, size: e.rows });
+  };
 
   const getUpdate = (e) => {
     console.log(e);
-    setFilterParams({
-      sort: {
-        sortBy: e.sortField,
-        sortDir: e.sortOrder,
-      },
-      filter: {
-        id: e.filters.id.constraints[0].value,
-        fname: e.filters.fname.constraints[0].value,
-        lname: e.filters.lname.constraints[0].value,
-        departmentId: e.filters.positionId.value,
-        positionId: e.filters.departmentId.value,
-      },
-      page: {
-        pageNum: e.first,
-        size: e.rows,
-      },
+    // initFilters();
+    // setFilterParams({
+    //   sortBy: e.sortField,
+    //   sortDir: listenOnFliedSort(e),
+    //   id: e.filters?.id.value,
+    //   fname: e.filters?.fname.value,
+    //   lname: e.filters?.lname.value,
+    //   positionId: e.filters?.positionId.value,
+    //   departmentId: e.filters?.departmentId.value,
+    //   page: e.page,
+    //   size: e.rows,
+    // });
+
+    setLazyParams({
+      sortBy: e.sortField,
+      sortDir: listenOnFliedSort(e),
+      id: e.filters?.id.value,
+      fname: e.filters?.fname.value,
+      lname: e.filters?.lname.value,
+      positionId: e.filters?.positionId.value,
+      departmentId: e.filters?.departmentId.value,
+      page: e.page,
+      size: e.rows,
     });
+    const idFilterOnChange = (event) => {
+      console.log("check id filter on change", event);
+    };
   };
   return (
     <div className="grid crud-demo">
@@ -573,50 +684,57 @@ const Crud = () => {
             lazy
             paginator
             totalRecords={totalRecords}
+            filterDisplay="row"
+            first={first}
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} employees"
             rows={size}
             rowsPerPageOptions={[5, 10, 25]}
             className="datatable-responsive"
-            globalFilter={globalFilter}
-            //
-            onFilter={(e) => getUpdate(e)}
-            onSort={(e) => getUpdate(e)}
+            onFilter={(e) => {
+              getUpdate(e);
+            }}
+            onSort={(e) => {
+              getUpdate(e);
+            }}
             sortMode="single"
-            onPage={(e) => getUpdate(e)}
+            onPage={(e) => {
+              handleOnPage(e);
+            }}
             showGridlines
             filters={filters}
             emptyMessage="No employees found."
             header={header}
             responsiveLayout="scroll"
           >
-            <Column
-              selectionMode="multiple"
-              headerStyle={{ width: "4rem" }}
-            ></Column>
+            <Column selectionMode="multiple"></Column>
             <Column
               field="id"
               header="Id"
+              filterHeaderStyle="equals"
               filter
+              showFilterMenu={false}
               sortable
               body={idBodyTemplate}
-              headerStyle={{ minWidth: "4rem" }}
+              headerStyle={{ minWidth: "8rem" }}
             ></Column>
             <Column
               field="fname"
               header="First name"
               filter
+              showFilterMenu={false}
               sortable
               body={fnameBodyTemplate}
-              headerStyle={{ minWidth: "8rem" }}
+              headerStyle={{ minWidth: "10rem" }}
             ></Column>
             <Column
               field="lname"
               header="Last name"
               filter
+              showFilterMenu={false}
               sortable
               body={lnameBodyTemplate}
-              headerStyle={{ minWidth: "8rem" }}
+              headerStyle={{ minWidth: "10rem" }}
             ></Column>
 
             <Column
@@ -638,7 +756,6 @@ const Crud = () => {
             <Column
               field="email"
               header="Email"
-              // sortable
               body={emailBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
             ></Column>
@@ -646,8 +763,9 @@ const Crud = () => {
             <Column
               field="positionId"
               header="Position"
-              filterMenuStyle={{ width: "14rem" }}
-              style={{ minWidth: "12rem" }}
+              showFilterMenu={false}
+              filterMenuStyle={{ width: "10rem" }}
+              style={{ minWidth: "10rem" }}
               body={positionBodyTemplate}
               filter
               filterElement={positionFilterTemplate}
@@ -656,8 +774,9 @@ const Crud = () => {
             <Column
               field="departmentId"
               header="Department"
-              filterMenuStyle={{ width: "14rem" }}
-              style={{ minWidth: "12rem" }}
+              showFilterMenu={false}
+              filterMenuStyle={{ width: "8rem" }}
+              style={{ minWidth: "8rem" }}
               body={departmentBodyTemplate}
               filter
               // showFilterMenu={false}
@@ -665,6 +784,7 @@ const Crud = () => {
             ></Column>
 
             <Column
+              header="Action"
               body={actionBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
             ></Column>
