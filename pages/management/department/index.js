@@ -13,6 +13,9 @@ import { InputMask } from "primereact/inputmask";
 import { Dropdown } from "primereact/dropdown";
 import { DepartmentService } from "../../../demo/service/DepartmentService";
 import { PositionService } from "../../../demo/service/PositionService";
+import employeeApi from "../../api/employeeApi";
+import departmentApi from "../../api/departmentApi";
+import positionApi from "../../api/positionApi";
 
 const Crud = () => {
   const emptyDepartment = {
@@ -26,7 +29,6 @@ const Crud = () => {
   const toast = useRef(null);
 
   const [department, setDepartment] = useState(emptyDepartment);
-  const [departments, setDepartments] = useState(null);
   const [positions, setPositions] = useState(null);
   const [employees, setEmployees] = useState(null);
 
@@ -35,23 +37,26 @@ const Crud = () => {
   const [deleteDepartmentsDialog, setDeleteDepartmentsDialog] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState(null);
 
-  useEffect(() => {
-    PositionService.getPositions().then((data) => {
-      setPositions(data.data);
-    });
-  }, []);
-  useEffect(() => {
-    DepartmentService.getDepartments().then((data) => {
-      setDepartments(data.data);
-    });
-  }, []);
+  const fetchData = async () => {
+    try {
+      // const resEmp = await employeeApi.getAll(lazyParams);
+      // setEmployees(resEmp);
+      // setTotalRecords(resEmp.totalElements);
+      // setSize(resEmp.size);
 
-  useEffect(() => {
-    EmployeeService.getEmployees().then((data) => {
-      setEmployees(data.data);
-    });
-  }, []);
+      const resPos = await positionApi.getAll();
+      setPositions(resPos);
 
+      const resDept = await departmentApi.getAll();
+      console.log(resDept);
+      setDepartments(resDept);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
   // click -> nut CREATE -> state bat su kien dong mo
   const openNew = () => {
     setDepartment(emptyDepartment);
@@ -360,6 +365,7 @@ const Crud = () => {
             onSelectionChange={(e) => setSelectedDepartments(e.value)}
             dataKey="departmentId"
             rows={5}
+            showGridlines
             className="datatable-responsive"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             globalFilter={globalFilter}
@@ -393,6 +399,7 @@ const Crud = () => {
               headerStyle={{ minWidth: "8rem" }}
             ></Column>
             <Column
+              header="Action"
               body={actionBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
             ></Column>

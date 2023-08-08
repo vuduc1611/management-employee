@@ -7,7 +7,7 @@ const departmentApi = {
     const url = "/departments";
     return axiosClient.get(url);
   },
-  get: (id) => {
+  findByDept: (id) => {
     const url = `/departments/${id}`;
     return axiosClient.get(url);
   },

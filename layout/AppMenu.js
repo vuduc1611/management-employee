@@ -17,8 +17,7 @@ const AppMenu = () => {
         {
           label: "Profiles",
           icon: "pi pi-fw pi-id-card",
-          to: "/management/formlayout",
-          // /management/input
+          to: "/management/department",
         },
         {
           label: "Payroll",
@@ -36,13 +35,13 @@ const AppMenu = () => {
       label: "Your Company",
       items: [
         {
-          label: "Department",
-          icon: "pi pi-fw pi-user",
-          to: "/management/department",
+          label: "Organization",
+          icon: "pi pi-fw  pi-table",
+          to: "/management/organization",
         },
         {
           label: "Employee",
-          icon: "pi pi-fw pi-table",
+          icon: "pi pi-fw pi-user",
           to: "/management/employee",
         },
         { label: "Projects", icon: "pi pi-fw pi-list", to: "/management/list" },

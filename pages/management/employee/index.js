@@ -8,13 +8,9 @@ import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import React, { useEffect, useRef, useState } from "react";
-import { EmployeeService } from "../../../demo/service/EmployeeService";
 import { Dropdown } from "primereact/dropdown";
-import { DepartmentService } from "../../../demo/service/DepartmentService";
-import { PositionService } from "../../../demo/service/PositionService";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
 import employeeApi from "../../api/employeeApi";
-import { Tag } from "primereact/tag";
 import positionApi from "../../api/positionApi";
 import departmentApi from "../../api/departmentApi";
 
@@ -42,11 +38,6 @@ const Crud = () => {
       name: "Male",
     },
   ];
-
-  // const initSort = {
-  //   sortBy: "id",
-  //   sortDir: "ASC",
-  // };
   const initFilterParams = {
     sortBy: null,
     sortDir: null,
@@ -62,7 +53,6 @@ const Crud = () => {
   };
 
   const [submitted, setSubmitted] = useState(false);
-  const [globalFilter, setGlobalFilter] = useState(null);
   const toast = useRef(null);
   const dt = useRef(null);
 
@@ -76,70 +66,34 @@ const Crud = () => {
   const [deleteEmployeesDialog, setDeleteEmployeesDialog] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState(null);
   const [eventBtnDelete, setEventBtnDelete] = useState(false);
-
-  const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState(null);
   const [size, setSize] = useState(0);
-  const [filterParams, setFilterParams] = useState(initFilterParams);
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [first, setFirst] = useState(0);
 
-  // LazyParams
   const [lazyParams, setLazyParams] = useState(initFilterParams);
 
   const fetchData = async () => {
     try {
-      // get data Employees
       const resEmp = await employeeApi.getAll(lazyParams);
       setEmployees(resEmp.content);
       setTotalRecords(resEmp.totalElements);
       setSize(resEmp.size);
-      console.log("chheck response em", resEmp.content);
-      //get data Position
+
       const resPos = await positionApi.getAll();
       setPositions(resPos);
-      console.log("chheck response pos", resPos);
-      // get data Department
+
       const resDept = await departmentApi.getAll();
       setDepartments(resDept);
-      console.log("chheck response dept", resDept);
     } catch (error) {
       console.log(error);
     }
   };
-
   useEffect(() => {
     fetchData();
   }, [lazyParams]);
 
-  /*
-  useEffect(() => {
-    const fetchEmployee = async () => {
-      try {
-        const response = await employeeApi.getAll(filterParams);
-        // console.log(response);
-        setTotalRecords(response.totalElements);
-        setSize(response.size);
-        setEmployees(response.content);
-      } catch (error) {
-        console.log("Failed to fetch data", error);
-      }
-    };
-    fetchEmployee();
-  }, [filterParams]);
-
-  useEffect(() => {
-    PositionService.getPositions().then((res) => {
-      setPositions(res.data);
-    });
-
-    DepartmentService.getDepartments().then((res) => {
-      setDepartments(res.data);
-    });
-    initFilters();
-  }, []);
-*/
   const openNew = () => {
     setEmployee(emptyEmployee);
     setSubmitted(false);
@@ -148,43 +102,9 @@ const Crud = () => {
   const clearFilter = () => {
     initFilters();
   };
-  // const onGlobalFilterChange = (e) => {
-  //   const value = e.target.value;
-  //   let _filters = { ...filters };
-
-  //   _filters["global"].value = value;
-
-  //   setFilters(_filters);
-  //   setGlobalFilterValue(value);
-  // };
-  const onGlobalFilterClick = (event) => {
-    console.log(event);
-    // setFilters(_filters);
-    // setGlobalFilterValue(value);
-  };
-
-  // const initFilters = () => {
-  //   setFilters({
-  //     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  //     // id: { value: null, matchMode: FilterMatchMode.EQUALS },
-  //     id: {
-  //       constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
-  //     },
-  //     fname: {
-  //       // operator: FilterOperator.AND,
-  //       constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
-  //     },
-  //     lname: {
-  //       // operator: FilterOperator.AND,
-  //       constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
-  //     },
-  //     departmentId: { value: null, matchMode: FilterMatchMode.EQUALS },
-  //     positionId: { value: null, matchMode: FilterMatchMode.EQUALS },
-  //   });
-  //   setGlobalFilterValue("");
-  // };
 
   const initFilters = () => {
+    setFirst(0);
     setLazyParams(initFilterParams);
     setFilters({
       id: { value: null },
@@ -205,19 +125,21 @@ const Crud = () => {
 
   const deptFilterTemplate = (options) => {
     return (
-      <Dropdown
-        value={options.value}
-        options={departments}
-        itemTemplate={deptItem}
-        onChange={(e) => {
-          options.filterApplyCallback(e.value);
-        }}
-        optionValue="departmentId"
-        optionLabel="name"
-        placeholder="Select One"
-        className="p-column-filter"
-        style={{ minWidth: "12rem" }}
-      />
+      <React.Fragment>
+        <Dropdown
+          value={options.value}
+          options={departments}
+          itemTemplate={deptItem}
+          onChange={(e) => {
+            options.filterApplyCallback(e.value);
+          }}
+          optionValue="departmentId"
+          optionLabel="name"
+          placeholder="Select One"
+          className="p-column-filter"
+          style={{ minWidth: "12rem" }}
+        />
+      </React.Fragment>
     );
   };
 
@@ -231,19 +153,21 @@ const Crud = () => {
 
   const positionFilterTemplate = (options) => {
     return (
-      <Dropdown
-        value={options.value}
-        options={positions}
-        itemTemplate={positionItem}
-        onChange={(e) => {
-          options.filterApplyCallback(e.value);
-        }}
-        optionValue="id"
-        optionLabel="name"
-        placeholder="Select One"
-        className="p-column-filter"
-        style={{ minWidth: "12rem" }}
-      />
+      <React.Fragment>
+        <Dropdown
+          value={options.value}
+          options={positions}
+          itemTemplate={positionItem}
+          onChange={(e) => {
+            options.filterApplyCallback(e.value);
+          }}
+          optionValue="id"
+          optionLabel="name"
+          placeholder="Select One"
+          className="p-column-filter"
+          style={{ minWidth: "12rem" }}
+        />
+      </React.Fragment>
     );
   };
 
@@ -260,7 +184,7 @@ const Crud = () => {
     setDeleteEmployeesDialog(false);
   };
 
-  const saveEmployee = () => {
+  const saveEmployee = async () => {
     setSubmitted(true);
 
     if (
@@ -273,7 +197,6 @@ const Crud = () => {
       let _employee = { ...employee };
       if (employee.id) {
         const index = findIndexById(employee.id);
-
         _employees[index] = _employee;
         toast.current.show({
           severity: "success",
@@ -281,26 +204,23 @@ const Crud = () => {
           detail: "Employee Updated",
           life: 3000,
         });
-        EmployeeService.updateEmployee(_employee).then((data) => {
-          setEmployee(data.data);
+        await employeeApi.update(_employee).then((res) => {
+          setEmployees(res.content);
         });
       } else {
         _employee.id = createId();
         _employee.password = createPass();
         _employees.push(_employee);
-
-        // console.log("check here>>>>>", _employees);
         toast.current.show({
           severity: "success",
           summary: "Successful",
           detail: "Product Created",
           life: 3000,
         });
-        EmployeeService.createEmployee(_employee).then((data) => {
-          setEmployee(data.data);
+        await employeeApi.create(_employee).then((res) => {
+          setEmployees(res.content);
         });
       }
-
       setEmployees(_employees);
       setEmployee(emptyEmployee);
       setEmployeeDialog(false);
@@ -311,26 +231,28 @@ const Crud = () => {
     setEmployee({ ...employee });
     setEmployeeDialog(true);
   };
-
-  // here
   const confirmDeleteEmployee = (employee) => {
     setEmployee(employee);
     setDeleteEmployeeDialog(true);
   };
 
-  const deleteEmployee = () => {
-    let _employees = employees.filter((val) => val.id !== employee.id);
-    EmployeeService.deleteEmployee(employee.id);
-    setEmployees(_employees);
-    setDeleteEmployeeDialog(false);
-    setEmployee(emptyEmployee);
-    setEventBtnDelete(true);
-    toast.current.show({
-      severity: "success",
-      summary: "Successful",
-      detail: "Employee Deleted",
-      life: 3000,
-    });
+  const deleteEmployee = async () => {
+    try {
+      let _employees = employees.filter((val) => val.id !== employee.id);
+      await employeeApi.deleteOne(employee.id);
+      setEmployees(_employees);
+      setDeleteEmployeeDialog(false);
+      setEmployee(emptyEmployee);
+      setEventBtnDelete(true);
+      toast.current.show({
+        severity: "success",
+        summary: "Successful",
+        detail: "Employee Deleted",
+        life: 3000,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const findIndexById = (id) => {
@@ -351,7 +273,6 @@ const Crud = () => {
   const createPass = () => {
     const passRaw = employee.fname.concat(employee.lname);
     const pass = passRaw.replace(/ /g, "");
-    // console.log("Pass >>>>>>>", pass);
     return pass;
   };
 
@@ -363,25 +284,27 @@ const Crud = () => {
     setDeleteEmployeesDialog(true);
   };
 
-  const deleteSelectedEmployees = () => {
-    let ids = [];
-    let _employees = employees.filter((val) => {
-      return !selectedEmployees.includes(val);
-    });
+  const deleteSelectedEmployees = async () => {
+    try {
+      let ids = [];
+      let _employees = employees.filter((val) => {
+        return !selectedEmployees.includes(val);
+      });
+      selectedEmployees.forEach((item) => ids.push(item.id));
+      setEmployees(_employees);
+      await employeeApi.deleteMany(ids);
+      setDeleteEmployeesDialog(false);
+      setSelectedEmployees(null);
 
-    selectedEmployees.forEach((item) => ids.push(item.id));
-    setEmployees(_employees);
-    // console.log("check employees", employees);
-    EmployeeService.deleteManyEmp(ids);
-    setDeleteEmployeesDialog(false);
-    setSelectedEmployees(null);
-
-    toast.current.show({
-      severity: "success",
-      summary: "Successful",
-      detail: "Products Deleted",
-      life: 3000,
-    });
+      toast.current.show({
+        severity: "success",
+        summary: "Successful",
+        detail: "Products Deleted",
+        life: 3000,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const onChangeInput = (e, name) => {
@@ -393,26 +316,24 @@ const Crud = () => {
 
   const leftToolbarTemplate = () => {
     return (
-      <React.Fragment>
-        <div className="my-2">
-          <Button
-            label="New"
-            icon="pi pi-plus"
-            severity="success"
-            className="mr-2"
-            onClick={openNew}
-          />
-          <Button
-            label="Delete"
-            icon="pi pi-trash"
-            severity="danger"
-            onClick={confirmDeleteSelected}
-            disabled={
-              !selectedEmployees || !selectedEmployees.length || eventBtnDelete
-            }
-          />
-        </div>
-      </React.Fragment>
+      <div className="my-2">
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="success"
+          className="mr-2"
+          onClick={openNew}
+        />
+        <Button
+          label="Delete"
+          icon="pi pi-trash"
+          severity="danger"
+          onClick={confirmDeleteSelected}
+          disabled={
+            !selectedEmployees || !selectedEmployees.length || eventBtnDelete
+          }
+        />
+      </div>
     );
   };
 
@@ -443,7 +364,7 @@ const Crud = () => {
   };
 
   const genderBodyTemplate = (rowData) => {
-    return <>{rowData.gender}</>;
+    return <span>{rowData.gender}</span>;
   };
 
   const getPositionName = (positionId) => {
@@ -451,15 +372,14 @@ const Crud = () => {
     if (curPos) {
       return curPos.name;
     }
-    // return positions.find((p) => p.id === positionId)?.name;
   };
 
   const positionBodyTemplate = (rowData) => {
     return (
-      <>
+      <React.Fragment>
         <span className="p-column-title">Position</span>
-        {getPositionName(rowData.positionId)}
-      </>
+        <span>{getPositionName(rowData.positionId)}</span>
+      </React.Fragment>
     );
   };
 
@@ -472,10 +392,10 @@ const Crud = () => {
 
   const departmentBodyTemplate = (rowData) => {
     return (
-      <>
+      <React.Fragment>
         <span className="p-column-title">Department</span>
-        {getDepartmentName(rowData.departmentId)}
-      </>
+        <span>{getDepartmentName(rowData.departmentId)}</span>
+      </React.Fragment>
     );
   };
 
@@ -483,23 +403,6 @@ const Crud = () => {
     <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
       <h5 className="m-0">Manage Employees</h5>
       <span className="block mt-2 md:mt-0 p-input-icon-left">
-        {/* <i className="pi pi-search" /> */}
-        {/* <InputText
-          type="button"
-          value={globalFilterValue}
-          onChange={onGlobalFilterChange}
-          placeholder="Search..."
-        /> */}
-        {/* <Button
-          label="Clean"
-          // icon="pi pi-search"
-          onClick={(e) => {
-            onGlobalFilterClick(e);
-          }}
-          severity="warning"
-          className="mr-2 w-7rem"
-        /> */}
-
         <Button
           type="button"
           icon="pi pi-filter-slash"
@@ -513,15 +416,15 @@ const Crud = () => {
   );
 
   const employeeDialogFooter = (
-    <>
+    <React.Fragment>
       <Button label="Cancel" icon="pi pi-times" text onClick={hideDialog} />
       <Button label="Save" icon="pi pi-check" text onClick={saveEmployee} />
-    </>
+    </React.Fragment>
   );
 
   const actionBodyTemplate = (rowData) => {
     return (
-      <>
+      <React.Fragment>
         <Button
           icon="pi pi-pencil"
           severity="success"
@@ -537,12 +440,12 @@ const Crud = () => {
           rounded
           onClick={() => confirmDeleteEmployee(rowData)}
         />
-      </>
+      </React.Fragment>
     );
   };
 
   const deleteEmployeeDialogFooter = (
-    <>
+    <React.Fragment>
       <Button
         label="No"
         icon="pi pi-times"
@@ -550,11 +453,11 @@ const Crud = () => {
         onClick={hideDeleteEmployeeDialog}
       />
       <Button label="Yes" icon="pi pi-check" text onClick={deleteEmployee} />
-    </>
+    </React.Fragment>
   );
 
   const deleteEmployeesDialogFooter = (
-    <>
+    <React.Fragment>
       <Button
         label="No"
         icon="pi pi-times"
@@ -567,7 +470,7 @@ const Crud = () => {
         text
         onClick={deleteSelectedEmployees}
       />
-    </>
+    </React.Fragment>
   );
   const getDob = (dob) => {
     const arr = dob.split("-").reverse();
@@ -575,90 +478,87 @@ const Crud = () => {
   };
 
   const dobBodyTemplate = (rowData) => {
-    return <>{getDob(rowData.dob)}</>;
+    return <span>{getDob(rowData.dob)}</span>;
   };
 
   const idBodyTemplate = (rowData) => {
     return (
-      <>
-        <span className="p-column-title">Id</span>
-        {rowData.id}
-      </>
+      <React.Fragment>
+        {/* <span className="p-column-title">Id </span> */}
+        <span>{rowData.id}</span>
+      </React.Fragment>
     );
   };
   const fnameBodyTemplate = (rowData) => {
     return (
-      <>
+      <React.Fragment>
         <span className="p-column-title">First Name</span>
-        {rowData.fname}
-      </>
+        <span>{rowData.fname}</span>
+      </React.Fragment>
     );
   };
   const lnameBodyTemplate = (rowData) => {
     return (
-      <>
+      <React.Fragment>
         <span className="p-column-title">Last Name</span>
-        {rowData.lname}
-      </>
+        <span>{rowData.lname}</span>
+      </React.Fragment>
     );
   };
 
   const emailBodyTemplate = (rowData) => {
     return (
-      <>
+      <React.Fragment>
         <span className="p-column-title">Email</span>
-        {rowData.email}
-      </>
+        <span>{rowData.email}</span>
+      </React.Fragment>
     );
   };
-  // here
-  const listenOnFliedSort = (e) => {
-    const { sortField, sortOrder } = e;
-    const { sortDir, sortBy } = lazyParams;
-    if (sortField === null) {
-      return "ASC";
-    }
-    if (sortField === sortBy) {
-      return sortDir === "ASC" ? "DESC" : "ASC";
-    }
-    return "DESC";
-  };
 
+  //Handle Page
   const handleOnPage = (e) => {
     setFirst(e.first);
     setLazyParams({ ...lazyParams, page: e.page, size: e.rows });
   };
 
-  const getUpdate = (e) => {
-    console.log(e);
-    // initFilters();
-    // setFilterParams({
-    //   sortBy: e.sortField,
-    //   sortDir: listenOnFliedSort(e),
-    //   id: e.filters?.id.value,
-    //   fname: e.filters?.fname.value,
-    //   lname: e.filters?.lname.value,
-    //   positionId: e.filters?.positionId.value,
-    //   departmentId: e.filters?.departmentId.value,
-    //   page: e.page,
-    //   size: e.rows,
-    // });
-
+  // Handle Filter
+  const handleOnFilter = (e) => {
     setLazyParams({
-      sortBy: e.sortField,
-      sortDir: listenOnFliedSort(e),
+      ...lazyParams,
       id: e.filters?.id.value,
       fname: e.filters?.fname.value,
       lname: e.filters?.lname.value,
       positionId: e.filters?.positionId.value,
       departmentId: e.filters?.departmentId.value,
-      page: e.page,
-      size: e.rows,
     });
-    const idFilterOnChange = (event) => {
-      console.log("check id filter on change", event);
-    };
   };
+
+  // Handle Sort:
+  const handleOnSort = (e) => {
+    if (e.sortField === "id" && lazyParams.sortBy === null) {
+      setLazyParams({
+        ...lazyParams,
+        sortBy: e.sortField,
+        sortDir: "DESC",
+      });
+    } else if (
+      (e.sortField !== "id" && lazyParams.sortBy === null) ||
+      e.sortField !== lazyParams.sortBy
+    ) {
+      setLazyParams({
+        ...lazyParams,
+        sortBy: e.sortField,
+        sortDir: "ASC",
+      });
+    } else if (e.sortField === lazyParams.sortBy) {
+      setLazyParams({
+        ...lazyParams,
+        sortBy: e.sortField,
+        sortDir: lazyParams.sortDir === "ASC" ? "DESC" : "ASC",
+      });
+    }
+  };
+
   return (
     <div className="grid crud-demo">
       <div className="col-12">
@@ -666,12 +566,9 @@ const Crud = () => {
           <Toast ref={toast} />
           <Toolbar
             className="mb-4"
-            left={leftToolbarTemplate}
-            right={rightToolbarTemplate}
-          ></Toolbar>
-
-          {/* Table start */}
-
+            start={leftToolbarTemplate}
+            end={rightToolbarTemplate}
+          />
           <DataTable
             ref={dt}
             value={employees}
@@ -692,10 +589,10 @@ const Crud = () => {
             rowsPerPageOptions={[5, 10, 25]}
             className="datatable-responsive"
             onFilter={(e) => {
-              getUpdate(e);
+              handleOnFilter(e);
             }}
             onSort={(e) => {
-              getUpdate(e);
+              handleOnSort(e);
             }}
             sortMode="single"
             onPage={(e) => {
@@ -707,17 +604,16 @@ const Crud = () => {
             header={header}
             responsiveLayout="scroll"
           >
-            <Column selectionMode="multiple"></Column>
+            <Column selectionMode="multiple" />
             <Column
               field="id"
               header="Id"
-              filterHeaderStyle="equals"
               filter
               showFilterMenu={false}
               sortable
               body={idBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}
-            ></Column>
+            />
             <Column
               field="fname"
               header="First name"
@@ -726,7 +622,7 @@ const Crud = () => {
               sortable
               body={fnameBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
-            ></Column>
+            />
             <Column
               field="lname"
               header="Last name"
@@ -735,30 +631,28 @@ const Crud = () => {
               sortable
               body={lnameBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
-            ></Column>
+            />
 
             <Column
               field="gender"
               header="Gender"
               body={genderBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}
-              // sortable
-            ></Column>
+            />
 
             <Column
               field="dob"
               header="Date of Birth"
               body={dobBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
-              // sortable
-            ></Column>
+            />
 
             <Column
               field="email"
               header="Email"
               body={emailBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
-            ></Column>
+            />
 
             <Column
               field="positionId"
@@ -779,20 +673,14 @@ const Crud = () => {
               style={{ minWidth: "8rem" }}
               body={departmentBodyTemplate}
               filter
-              // showFilterMenu={false}
               filterElement={deptFilterTemplate}
-            ></Column>
-
+            />
             <Column
               header="Action"
               body={actionBodyTemplate}
               headerStyle={{ minWidth: "10rem" }}
-            ></Column>
+            />
           </DataTable>
-
-          {/* Table end */}
-
-          {/* Edit and create employee Start*/}
           <Dialog
             visible={employeeDialog}
             style={{ width: "650px" }}
