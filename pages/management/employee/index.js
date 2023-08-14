@@ -9,6 +9,7 @@ import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { Dropdown } from "primereact/dropdown";
+import { MultiSelect } from "primereact/multiselect";
 import { FilterMatchMode, FilterOperator } from "primereact/api";
 import employeeApi from "../../api/employeeApi";
 import positionApi from "../../api/positionApi";
@@ -66,8 +67,16 @@ const Crud = () => {
   const [deleteEmployeesDialog, setDeleteEmployeesDialog] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState(null);
   const [eventBtnDelete, setEventBtnDelete] = useState(false);
-  const [filters, setFilters] = useState(null);
+  const [filters, setFilters] = useState({
+    id: { value: null, matchMode: FilterMatchMode.EQUALS },
+    fname: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    lname: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    positionId: { value: null, matchMode: FilterMatchMode.IN },
+    departmentId: { value: null, matchMode: FilterMatchMode.IN },
+  });
+  // const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [size, setSize] = useState(0);
+  const [selectedDepartments, setSelectedDepartments] = useState(null);
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [first, setFirst] = useState(0);
@@ -110,8 +119,8 @@ const Crud = () => {
       id: { value: null },
       fname: { value: null },
       lname: { value: null },
-      positionId: { value: null },
-      departmentId: { value: null },
+      positionIds: { value: null },
+      departmentIds: { value: null },
     });
   };
 
@@ -122,24 +131,42 @@ const Crud = () => {
       </div>
     );
   };
+  // const handleFilterDepartments = (e) => {
+  //   const departmentSelects = e.map((item) => item.departmentId);
+  //   console.log("check departmentSelects", departmentSelects);
+  //   setLazyParams({ ...lazyParams, departmentIds: departmentSelects });
+  // };
 
   const deptFilterTemplate = (options) => {
     return (
-      <React.Fragment>
-        <Dropdown
-          value={options.value}
-          options={departments}
-          itemTemplate={deptItem}
-          onChange={(e) => {
-            options.filterApplyCallback(e.value);
-          }}
-          optionValue="departmentId"
-          optionLabel="name"
-          placeholder="Select One"
-          className="p-column-filter"
-          style={{ minWidth: "12rem" }}
-        />
-      </React.Fragment>
+      // <React.Fragment>
+      //   <Dropdown
+      //     value={options.value}
+      //     options={departments}
+      //     itemTemplate={deptItem}
+      //     onChange={(e) => {
+      //       options.filterApplyCallback(e.value);
+      //     }}
+      //     optionValue="departmentId"
+      //     optionLabel="name"
+      //     placeholder="Select One"
+      //     className="p-column-filter"
+      //     style={{ minWidth: "12rem" }}
+      //   />
+      // </React.Fragment>
+      <MultiSelect
+        value={options.value}
+        options={departments}
+        optionLabel="name"
+        itemTemplate={deptItem}
+        onChange={(e) => {
+          options.filterApplyCallback(e.value);
+        }}
+        maxSelectedLabels={1}
+        placeholder="Select"
+        className="p-column-filter"
+        style={{ minWidth: "12rem" }}
+      />
     );
   };
 
@@ -153,21 +180,35 @@ const Crud = () => {
 
   const positionFilterTemplate = (options) => {
     return (
-      <React.Fragment>
-        <Dropdown
-          value={options.value}
-          options={positions}
-          itemTemplate={positionItem}
-          onChange={(e) => {
-            options.filterApplyCallback(e.value);
-          }}
-          optionValue="id"
-          optionLabel="name"
-          placeholder="Select One"
-          className="p-column-filter"
-          style={{ minWidth: "12rem" }}
-        />
-      </React.Fragment>
+      // <React.Fragment>
+      //   <Dropdown
+      //     value={options.value}
+      //     options={positions}
+      //     itemTemplate={positionItem}
+      //     onChange={(e) => {
+      //       options.filterApplyCallback(e.value);
+      //     }}
+      //     optionValue="id"
+      //     optionLabel="name"
+      //     placeholder="Select One"
+      //     className="p-column-filter"
+      //     style={{ minWidth: "12rem" }}
+      //   />
+      // </React.Fragment>
+
+      <MultiSelect
+        value={options.value}
+        options={positions}
+        optionLabel="name"
+        itemTemplate={positionItem}
+        onChange={(e) => {
+          options.filterApplyCallback(e.value);
+        }}
+        maxSelectedLabels={1}
+        placeholder="Select"
+        className="p-column-filter"
+        style={{ minWidth: "12rem" }}
+      />
     );
   };
 
@@ -393,7 +434,7 @@ const Crud = () => {
   const departmentBodyTemplate = (rowData) => {
     return (
       <React.Fragment>
-        <span className="p-column-title">Department</span>
+        {/* <span className="p-column-title">Department</span> */}
         <span>{getDepartmentName(rowData.departmentId)}</span>
       </React.Fragment>
     );
@@ -523,13 +564,22 @@ const Crud = () => {
 
   // Handle Filter
   const handleOnFilter = (e) => {
+    console.log("check e", e.filters);
+    const departmentIdSelected = e.filters.departmentId.value?.map(
+      (item) => item.departmentId
+    );
+    const positionIdSelected = e.filters.positionId.value?.map(
+      (item) => item.id
+    );
+    // console.log("check departmentIdSelected", departmentIdSelected);
     setLazyParams({
       ...lazyParams,
       id: e.filters?.id.value,
       fname: e.filters?.fname.value,
       lname: e.filters?.lname.value,
-      positionId: e.filters?.positionId.value,
-      departmentId: e.filters?.departmentId.value,
+      positionIds: positionIdSelected,
+      // departmentId: e.filters?.departmentId.value,
+      departmentIds: departmentIdSelected,
     });
   };
 
@@ -581,6 +631,7 @@ const Crud = () => {
             lazy
             paginator
             totalRecords={totalRecords}
+            filters={filters}
             filterDisplay="row"
             first={first}
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -599,7 +650,6 @@ const Crud = () => {
               handleOnPage(e);
             }}
             showGridlines
-            filters={filters}
             emptyMessage="No employees found."
             header={header}
             responsiveLayout="scroll"
@@ -655,8 +705,9 @@ const Crud = () => {
             />
 
             <Column
-              field="positionId"
+              // field="positionId"
               header="Position"
+              filterField="positionId"
               showFilterMenu={false}
               filterMenuStyle={{ width: "10rem" }}
               style={{ minWidth: "10rem" }}
@@ -666,8 +717,9 @@ const Crud = () => {
             />
 
             <Column
-              field="departmentId"
+              // field="departmentId"
               header="Department"
+              filterField="departmentId"
               showFilterMenu={false}
               filterMenuStyle={{ width: "8rem" }}
               style={{ minWidth: "8rem" }}
@@ -675,6 +727,18 @@ const Crud = () => {
               filter
               filterElement={deptFilterTemplate}
             />
+
+            {/* <Column
+              header="Agent"
+              filterField="representative"
+              showFilterMenu={false}
+              filterMenuStyle={{ width: "14rem" }}
+              style={{ minWidth: "14rem" }}
+              body={representativeBodyTemplate}
+              filter
+              filterElement={representativeRowFilterTemplate}
+            /> */}
+
             <Column
               header="Action"
               body={actionBodyTemplate}

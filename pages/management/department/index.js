@@ -2,17 +2,11 @@ import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
-import { FileUpload } from "primereact/fileupload";
 import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import React, { useEffect, useRef, useState } from "react";
-import { EmployeeService } from "../../../demo/service/EmployeeService";
-import { InputMask } from "primereact/inputmask";
-import { Dropdown } from "primereact/dropdown";
-import { DepartmentService } from "../../../demo/service/DepartmentService";
-import { PositionService } from "../../../demo/service/PositionService";
 import employeeApi from "../../api/employeeApi";
 import departmentApi from "../../api/departmentApi";
 import positionApi from "../../api/positionApi";
@@ -25,7 +19,6 @@ const Crud = () => {
   };
 
   const [submitted, setSubmitted] = useState(false);
-  const [globalFilter, setGlobalFilter] = useState(null);
   const toast = useRef(null);
 
   const [department, setDepartment] = useState(emptyDepartment);
@@ -40,15 +33,11 @@ const Crud = () => {
 
   const fetchData = async () => {
     try {
-      // const resEmp = await employeeApi.getAll(lazyParams);
-      // setEmployees(resEmp);
-      // setTotalRecords(resEmp.totalElements);
-      // setSize(resEmp.size);
-
       const resPos = await positionApi.getAll();
       setPositions(resPos);
 
       const resDept = await departmentApi.getAll();
+      console.log("check resDEpt", resDept);
       setDepartments(resDept);
     } catch (error) {
       console.log(error);
@@ -127,11 +116,12 @@ const Crud = () => {
     setDeleteDepartmentDialog(true);
   };
 
-  const deleteDepartment = () => {
+  const deleteDepartment = async () => {
     let _departments = departments.filter(
       (val) => val.departmentId !== department.departmentId
     );
-    DepartmentService.deleteDepartment(department.departmentId);
+    await departmentApi.deleteOne(department.departmentId);
+    // DepartmentService.deleteDepartment(department.departmentId);
     setDepartments(_departments);
     setDeleteDepartmentDialog(false);
     setDepartment(emptyDepartment);
@@ -163,7 +153,7 @@ const Crud = () => {
     setDeleteDepartmentsDialog(true);
   };
 
-  const deleteSelectedDepartments = () => {
+  const deleteSelectedDepartments = async () => {
     let ids = [];
     selectedDepartments.forEach((item) => ids.push(item.departmentId));
     let _departments = departments.filter((val) => {
@@ -172,7 +162,8 @@ const Crud = () => {
     });
     console.log("check _departments", _departments);
     setDepartments(_departments);
-    DepartmentService.deleteDepartments(ids);
+    await departmentApi.deleteMany(ids);
+    // DepartmentService.deleteDepartments(ids);
     setDeleteDepartmentsDialog(false);
     setSelectedDepartments(null);
 

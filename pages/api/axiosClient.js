@@ -7,13 +7,19 @@ import queryString from "query-string";
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:8080/api",
-  headers: {
-    "content-type": "application/json",
-  },
+  // headers: {
+  //   "content-type": "application/json",
+  // },
+  // headers: { "Content-Type": "application/json" },
+  headers: { accept: "*/*", "Content-Type": "application/json" },
   paramsSerializer: (params) =>
-    queryString.stringify(params, {
-      skipNull: true,
-    }),
+    queryString.stringify(
+      params,
+      {
+        skipNull: true,
+      },
+      { arrayFormat: "comma" }
+    ),
 });
 axiosClient.interceptors.request.use(async (config) => {
   // Handle token here ...
@@ -28,7 +34,7 @@ axiosClient.interceptors.response.use(
   },
   (error) => {
     // Handle errors
-    throw error;
+    throw error.response.data;
   }
 );
 export default axiosClient;

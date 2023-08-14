@@ -10,13 +10,13 @@ const employeeApi = {
     const url = `/employees/${id}`;
     return axiosClient.get(url);
   },
-  create: (req) => {
+  create: async (req) => {
     const url = `/employees`;
-    return axiosClient.post(url, { req });
+    return await axiosClient.post(url, JSON.stringify(req));
   },
-  update: (req) => {
+  update: async (req) => {
     const url = "/employees";
-    return axiosClient.put(url, { req });
+    return await axiosClient.put(url, JSON.stringify(req));
   },
   deleteOne: (id) => {
     const url = `/employees/${id}`;
