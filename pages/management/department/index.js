@@ -31,6 +31,7 @@ const Crud = () => {
   const [department, setDepartment] = useState(emptyDepartment);
   const [positions, setPositions] = useState(null);
   const [employees, setEmployees] = useState(null);
+  const [departments, setDepartments] = useState(null);
 
   const [departmentDialog, setDepartmentDialog] = useState(false);
   const [deleteDepartmentDialog, setDeleteDepartmentDialog] = useState(false);
@@ -48,7 +49,6 @@ const Crud = () => {
       setPositions(resPos);
 
       const resDept = await departmentApi.getAll();
-      console.log(resDept);
       setDepartments(resDept);
     } catch (error) {
       console.log(error);
@@ -78,13 +78,12 @@ const Crud = () => {
     setDeleteDepartmentsDialog(false);
   };
 
-  const saveDepartment = () => {
+  const saveDepartment = async () => {
     setSubmitted(true);
 
     if (department.name) {
       let _departments = [...departments];
       let _department = { ...department };
-      // console.log("check _department, _departments", _department, _departments);
       if (department.departmentId) {
         const index = findIndexById(department.departmentId);
 
@@ -95,11 +94,12 @@ const Crud = () => {
           detail: "Department Updated",
           life: 3000,
         });
-        // DepartmentService.updateDepartment(_department).then((data) => {
-        //   setDepartment(data.data);
-        // });
+
+        await departmentApi.update(_department).then((res) => {
+          setDepartments(res);
+        });
       } else {
-        // _department.departmentId = createId();
+        _department.departmentId = createId();
         _departments.push(_department);
         toast.current.show({
           severity: "success",
@@ -107,9 +107,9 @@ const Crud = () => {
           detail: "Product Created",
           life: 3000,
         });
-        // EmployeeService.createEmployee(_employee).then((data) => {
-        //   setEmployee(data.data);
-        // });
+        await departmentApi
+          .create(_department)
+          .then((res) => setDepartments(res));
       }
 
       setDepartments(_departments);
@@ -214,26 +214,21 @@ const Crud = () => {
     );
   };
 
-  const rightToolbarTemplate = () => {
-    return (
-      <React.Fragment>
-        <FileUpload
-          mode="basic"
-          accept="image/*"
-          maxFileSize={1000000}
-          label="Import"
-          chooseLabel="Import"
-          className="mr-2 inline-block"
-        />
-        <Button
-          label="Export"
-          icon="pi pi-upload"
-          severity="help"
-          //   onClick={exportCSV}
-        />
-      </React.Fragment>
-    );
-  };
+  // const rightToolbarTemplate = () => {
+  //   return (
+  //     <React.Fragment>
+  //       <FileUpload
+  //         mode="basic"
+  //         accept="image/*"
+  //         maxFileSize={1000000}
+  //         label="Import"
+  //         chooseLabel="Import"
+  //         className="mr-2 inline-block"
+  //       />
+  //       <Button label="Export" icon="pi pi-upload" severity="help" />
+  //     </React.Fragment>
+  //   );
+  // };
 
   const hideDepartmentDialog = () => {
     setSubmitted(false);
@@ -243,14 +238,14 @@ const Crud = () => {
   const header = (
     <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
       <h5 className="m-0">Manage Department</h5>
-      <span className="block mt-2 md:mt-0 p-input-icon-left">
+      {/* <span className="block mt-2 md:mt-0 p-input-icon-left">
         <i className="pi pi-search" />
         <InputText
           type="search"
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="Search..."
         />
-      </span>
+      </span> */}
     </div>
   );
 
@@ -323,7 +318,7 @@ const Crud = () => {
     return (
       <>
         <span className="p-column-title">Id</span>
-        {rowData.departmentId}
+        <span>{rowData.departmentId}</span>
       </>
     );
   };
@@ -332,7 +327,7 @@ const Crud = () => {
     return (
       <>
         <span className="p-column-title">Name</span>
-        {rowData.name}
+        <span>{rowData.name}</span>
       </>
     );
   };
@@ -341,7 +336,7 @@ const Crud = () => {
     return (
       <>
         <span className="p-column-title">Description</span>
-        {rowData.description}
+        <span>{rowData.description}</span>
       </>
     );
   };
@@ -353,8 +348,8 @@ const Crud = () => {
           <Toast ref={toast} />
           <Toolbar
             className="mb-4"
-            left={leftToolbarTemplate}
-            right={rightToolbarTemplate}
+            start={leftToolbarTemplate}
+            // right={rightToolbarTemplate}
           ></Toolbar>
 
           {/* Table start */}
@@ -368,7 +363,7 @@ const Crud = () => {
             showGridlines
             className="datatable-responsive"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            globalFilter={globalFilter}
+            // globalFilter={globalFilter}
             emptyMessage="No department found."
             header={header}
             responsiveLayout="scroll"
@@ -405,9 +400,6 @@ const Crud = () => {
             ></Column>
           </DataTable>
 
-          {/* Table end */}
-
-          {/* Edit and create employee Start*/}
           <Dialog
             visible={departmentDialog}
             style={{ width: "650px" }}

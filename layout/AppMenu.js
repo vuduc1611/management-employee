@@ -39,6 +39,17 @@ const AppMenu = () => {
           icon: "pi pi-fw  pi-table",
           to: "/management/organization",
         },
+        ,
+        {
+          label: "Organization 1",
+          icon: "pi pi-fw pi-check-square",
+          to: "/management/orgchart",
+        },
+        {
+          label: "Department",
+          icon: "pi pi-fw  pi-table",
+          to: "/management/department",
+        },
         {
           label: "Employee",
           icon: "pi pi-fw pi-user",

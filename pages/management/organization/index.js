@@ -6,37 +6,39 @@ import departmentApi from "../../api/departmentApi";
 import positionApi from "../../api/positionApi";
 
 const DepartmentTree = () => {
-  const [treeNodes, setTreeNodes] = useState([]);
-  const [selectedTreeNodeKeys, setSelectedTreeNodeKeys] = useState(null);
-  const [treeTableNodes, setTreeTableNodes] = useState([]);
-  const [selectedTreeTableNodeKeys, setSelectedTreeTableNodeKeys] = useState(
-    []
-  );
-  const [nodeDept, setNodeDept] = useState([]);
-  const [expandedKeys, setExpandedKeys] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [selectId, setSelectedId] = useState(null);
-
-  //   const fetchData = async () => {
-  //     await employeeApi.getAll(lazyParams).then((data) => {
-  //       setEmployees(data);
-  //     });
-  //     await positionApi.getAll().then((data) => setPositions(data));
-  //   };
+  const [empFromDept, setEmpFromDept] = useState([]);
+  const [customValue, setCustomValue] = useState({});
+  const [expandedKeys, setExpandedKeys] = useState(null);
   const fetchData = async () => {
     await departmentApi.getAll().then((data) => {
-      setDepartments(data);
+      setDepartments(
+        data.map((d, index) => ({
+          key: index,
+          departmentId: d.departmentId,
+          name: d.name,
+          description: d.description,
+          children: [
+            {
+              id: 0,
+              name: "ABC",
+              description: "ABCBCBCB",
+            },
+            {
+              id: 0,
+              name: "A",
+              description: "ABCBCBCB",
+            },
+          ],
+        }))
+      );
     });
-    // await departmentApi.findByDept(selectId).then((data) => setNodeDept(data));
   };
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  //   const idBodyTemplate = (rowData) => {
-  //     return <span>{rowData.departmentId}</span>;
-  //   };
 
   const nameBodyTemplate = (rowData) => {
     return <span className="p-column-title">{rowData.name}</span>;
@@ -45,27 +47,50 @@ const DepartmentTree = () => {
   const descriptionBodyTemplate = (rowData) => {
     return <span className="p-column-title">{rowData.description}</span>;
   };
-  const customData = (selectId) => {};
+  // const customData = (id, raws) => {
+  //   // await employeeApi.findByDept(selectId).then((data) => setEmpFromDept(data));
+  //   const custom = [];
+  //   const customChild = [];
+  //   custom.push({
+  //     key: id,
+  //     data: {
+  //       name: departments.find((dept) => dept.departmentId === id).name,
+  //       description: departments.find((dept) => dept.departmentId === id)
+  //         .description,
+  //     },
+  //     children: raws.forEach((value, index) => {
+  //       customChild.push({
+  //         key: id + "-" + index,
+  //         data: {
+  //           id: value.id,
+  //           firstname: value.fname,
+  //           lastname: value.lname,
+  //           gender: value.gender,
+  //           position: positionApi.find((p) => (p = value.positionId)).name,
+  //         },
+  //       });
+  //     }),
+  //   });
+
+  //   setCustomValue(custom);
+
+  //   console.log("check custom: ", custom);
+  // };
+
+  const handleExpand = (e) => {
+    return <span>{`aaaaaaaaaa + ${e.id}`}</span>;
+  };
 
   return (
     <div className="grid">
       <div className="col-12">
         <div className="card">
-          <h5>TreeTable</h5>
+          <h5>OrtChart</h5>
           <TreeTable
             value={departments}
-            header="OrtChart"
-            // selectionMode="checkbox"
-            selectionKeys={selectedTreeTableNodeKeys}
             expandedKeys={expandedKeys}
-            onSelectionChange={(e) => setSelectedTreeTableNodeKeys(e.value)}
+            onExpand={(e) => handleExpand(e.node.children)}
           >
-            {/* <Column
-              field="departmentId"
-              header="Id"
-              body={idBodyTemplate}
-              expander
-            /> */}
             <Column
               field="name"
               header="Name"

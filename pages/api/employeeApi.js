@@ -24,11 +24,16 @@ const employeeApi = {
   },
   deleteMany: (ids) => {
     // const url = "/employees";
-    const url = `http://localhost:8080/api/employees/many?ids=${ids}`;
+    const url = `/employees/many?ids=${ids}`;
     return axiosClient.delete(url);
   },
-  findByDept: (id) => {
-    const url = `http://localhost:8080/api/employees/many?ids=${ids}`;
+  // findByDept: (id) => {
+  //   const url = `/departments/${id}`;
+  //   return axiosClient.get(url);
+  // },
+  findByDeptAndPos: (idDept, idPos) => {
+    const url = `/employees/dept/${idDept}/pos/${idPos}`;
+    return axiosClient.get(url);
   },
 };
 export default employeeApi;
