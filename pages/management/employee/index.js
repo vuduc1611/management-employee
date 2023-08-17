@@ -10,10 +10,14 @@ import { classNames } from "primereact/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
+import { FilterMatchMode } from "primereact/api";
 import employeeApi from "../../api/employeeApi";
 import positionApi from "../../api/positionApi";
 import departmentApi from "../../api/departmentApi";
+import { Tooltip } from "primereact/tooltip";
+import { Tag } from "primereact/tag";
+import { ProgressBar } from "primereact/progressbar";
+import { Image } from "primereact/image";
 
 const Crud = () => {
   const emptyEmployee = {
@@ -56,17 +60,20 @@ const Crud = () => {
   const [submitted, setSubmitted] = useState(false);
   const toast = useRef(null);
   const dt = useRef(null);
+  const fileUploadRef = useRef(null);
 
   const [employee, setEmployee] = useState(emptyEmployee);
   const [departments, setDepartments] = useState(null);
   const [positions, setPositions] = useState(null);
   const [employees, setEmployees] = useState(null);
+  const [eventUpdate, setEventUpdate] = useState(false);
 
   const [employeeDialog, setEmployeeDialog] = useState(false);
   const [deleteEmployeeDialog, setDeleteEmployeeDialog] = useState(false);
   const [deleteEmployeesDialog, setDeleteEmployeesDialog] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState(null);
   const [eventBtnDelete, setEventBtnDelete] = useState(false);
+
   const [filters, setFilters] = useState({
     id: { value: null, matchMode: FilterMatchMode.EQUALS },
     fname: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -74,18 +81,18 @@ const Crud = () => {
     positionId: { value: null, matchMode: FilterMatchMode.IN },
     departmentId: { value: null, matchMode: FilterMatchMode.IN },
   });
-  // const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const [size, setSize] = useState(0);
-  const [selectedDepartments, setSelectedDepartments] = useState(null);
 
+  const [size, setSize] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [first, setFirst] = useState(0);
-
   const [lazyParams, setLazyParams] = useState(initFilterParams);
+
+  const [showDialogImport, setShowDialogImport] = useState(false);
+  const [totalSize, setTotalSize] = useState(0);
 
   const fetchData = async () => {
     try {
-      const resEmp = await employeeApi.getAll(lazyParams);
+      const resEmp = await employeeApi.getAllPaginator(lazyParams);
       setEmployees(resEmp.content);
       setTotalRecords(resEmp.totalElements);
       setSize(resEmp.size);
@@ -101,7 +108,7 @@ const Crud = () => {
   };
   useEffect(() => {
     fetchData();
-  }, [lazyParams]);
+  }, [lazyParams, eventUpdate]);
 
   const openNew = () => {
     setEmployee(emptyEmployee);
@@ -131,29 +138,9 @@ const Crud = () => {
       </div>
     );
   };
-  // const handleFilterDepartments = (e) => {
-  //   const departmentSelects = e.map((item) => item.departmentId);
-  //   console.log("check departmentSelects", departmentSelects);
-  //   setLazyParams({ ...lazyParams, departmentIds: departmentSelects });
-  // };
 
   const deptFilterTemplate = (options) => {
     return (
-      // <React.Fragment>
-      //   <Dropdown
-      //     value={options.value}
-      //     options={departments}
-      //     itemTemplate={deptItem}
-      //     onChange={(e) => {
-      //       options.filterApplyCallback(e.value);
-      //     }}
-      //     optionValue="departmentId"
-      //     optionLabel="name"
-      //     placeholder="Select One"
-      //     className="p-column-filter"
-      //     style={{ minWidth: "12rem" }}
-      //   />
-      // </React.Fragment>
       <MultiSelect
         value={options.value}
         options={departments}
@@ -165,7 +152,7 @@ const Crud = () => {
         maxSelectedLabels={1}
         placeholder="Select"
         className="p-column-filter"
-        style={{ minWidth: "12rem" }}
+        style={{ minWidth: "8rem" }}
       />
     );
   };
@@ -180,22 +167,6 @@ const Crud = () => {
 
   const positionFilterTemplate = (options) => {
     return (
-      // <React.Fragment>
-      //   <Dropdown
-      //     value={options.value}
-      //     options={positions}
-      //     itemTemplate={positionItem}
-      //     onChange={(e) => {
-      //       options.filterApplyCallback(e.value);
-      //     }}
-      //     optionValue="id"
-      //     optionLabel="name"
-      //     placeholder="Select One"
-      //     className="p-column-filter"
-      //     style={{ minWidth: "12rem" }}
-      //   />
-      // </React.Fragment>
-
       <MultiSelect
         value={options.value}
         options={positions}
@@ -207,7 +178,8 @@ const Crud = () => {
         maxSelectedLabels={1}
         placeholder="Select"
         className="p-column-filter"
-        style={{ minWidth: "12rem" }}
+        style={{ minWidth: "8rem" }}
+        // style={{ minWidth: "12rem" }}
       />
     );
   };
@@ -232,7 +204,13 @@ const Crud = () => {
       employee.fname.trim() &&
       employee.lname.trim() &&
       employee.departmentId &&
-      employee.positionId
+      employee.positionId &&
+      employee.gender &&
+      employee.address &&
+      employee.phone &&
+      employee.dob &&
+      employee.email &&
+      validateEmail(employee.email)
     ) {
       let _employees = [...employees];
       let _employee = { ...employee };
@@ -265,6 +243,7 @@ const Crud = () => {
       setEmployees(_employees);
       setEmployee(emptyEmployee);
       setEmployeeDialog(false);
+      setEventUpdate(!eventUpdate);
     }
   };
 
@@ -285,6 +264,7 @@ const Crud = () => {
       setDeleteEmployeeDialog(false);
       setEmployee(emptyEmployee);
       setEventBtnDelete(true);
+      setEventUpdate(!eventUpdate);
       toast.current.show({
         severity: "success",
         summary: "Successful",
@@ -308,17 +288,50 @@ const Crud = () => {
   };
 
   const createId = () => {
-    const index = employees[employees.length - 1].id + 1;
+    const index = totalRecords + 1;
     return index;
   };
   const createPass = () => {
-    const passRaw = employee.fname.concat(employee.lname);
-    const pass = passRaw.replace(/ /g, "");
+    // const passRaw = employee.fname.concat(employee.lname);
+    // const pass = passRaw.replace(/ /g, "");
+    const pass = 123456;
     return pass;
   };
 
   const exportCSV = () => {
     dt.current.exportCSV();
+  };
+
+  const exportExcel = async () => {
+    const employeeDataAll = await employeeApi.getAllData().then((res) => res);
+    import("xlsx").then((xlsx) => {
+      const worksheet = xlsx.utils.json_to_sheet(employeeDataAll);
+      const workbook = { Sheets: { data: worksheet }, SheetNames: ["data"] };
+      const excelBuffer = xlsx.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+      saveAsExcelFile(excelBuffer, "employees");
+    });
+  };
+
+  const saveAsExcelFile = (buffer, fileName) => {
+    import("file-saver").then((module) => {
+      if (module && module.default) {
+        let EXCEL_TYPE =
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+        let EXCEL_EXTENSION = ".xlsx";
+        const data = new Blob([buffer], {
+          type: EXCEL_TYPE,
+        });
+
+        module.default.saveAs(
+          data,
+          fileName + "_export_" + new Date().getTime() + EXCEL_EXTENSION
+        );
+      }
+    });
   };
 
   const confirmDeleteSelected = () => {
@@ -378,22 +391,173 @@ const Crud = () => {
     );
   };
 
+  const onTemplateSelect = (e) => {
+    let _totalSize = totalSize;
+    let files = e.files;
+    _totalSize = files[0].size || 0;
+
+    setTotalSize(_totalSize);
+  };
+
+  const onTemplateUpload = async (event) => {
+    if (event.files[0].name.split(".")[1] !== "xlsx") {
+      toast.current.show({
+        severity: "error",
+        summary: "Failed",
+        detail: "File Uploaded",
+      });
+      return null;
+    }
+    var formData = new FormData();
+    formData.append("file", event.files[0]);
+    await employeeApi
+      .importExcel(formData)
+      .then((res) => res)
+      .then((success) => {
+        toast.current.show({
+          severity: "info",
+          summary: "Success",
+          detail: "File Uploaded",
+        });
+        console.log(success);
+        setShowDialogImport(false);
+        event.options.clear();
+      })
+      .catch((error) => {
+        console.log(error);
+        toast.current.show({
+          severity: "error",
+          summary: "Failed",
+          detail: "File Uploaded",
+        });
+      });
+    setEventUpdate(!eventUpdate);
+  };
+
+  const onTemplateClear = () => {
+    setTotalSize(0);
+  };
+
+  const headerTemplate = (options) => {
+    const { className, chooseButton, uploadButton, cancelButton } = options;
+    const value = totalSize / 100000;
+
+    console.log("check totalSize", totalSize);
+    const formatedValue =
+      fileUploadRef && fileUploadRef.current
+        ? fileUploadRef.current.formatSize(totalSize)
+        : "0 B";
+
+    return (
+      <div
+        className={className}
+        style={{
+          backgroundColor: "transparent",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {chooseButton}
+        {uploadButton}
+        {cancelButton}
+        <div className="flex align-items-center gap-3 ml-auto">
+          <span>{formatedValue} / 10 MB</span>
+          <ProgressBar
+            value={value}
+            showValue={false}
+            style={{ width: "10rem", height: "12px" }}
+          ></ProgressBar>
+        </div>
+      </div>
+    );
+  };
+
+  const itemTemplate = (file) => {
+    const dotPath = file.name.split(".")[1];
+    let imageSelectSrc;
+
+    if (dotPath === "xlsx") {
+      imageSelectSrc = "/demo/images/microsoft/excel-image.jpg";
+    } else if (dotPath === "docx") {
+      imageSelectSrc = "/demo/images/microsoft/word-icon.jpg";
+    } else {
+      imageSelectSrc = "/demo/images/microsoft/images-png.jpg";
+    }
+
+    return (
+      <div className="flex align-items-center flex-wrap">
+        <div className="flex align-items-center">
+          <div className="flex flex-column text-left ml-3 p-2 ">
+            <Image src={imageSelectSrc} alt="}Icon" width="70" />
+            <span className="mb-1">{file.name}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const emptyTemplate = () => {
+    return (
+      <div className="flex align-items-center flex-column">
+        <i
+          className="pi pi-file mt-3 p-5"
+          style={{
+            fontSize: "5em",
+            borderRadius: "50%",
+            backgroundColor: "var(--surface-b)",
+            color: "var(--surface-d)",
+          }}
+        ></i>
+        <span
+          style={{ fontSize: "1.2em", color: "var(--text-color-secondary)" }}
+          className="my-5"
+        >
+          Drag and Drop File Here
+        </span>
+      </div>
+    );
+  };
+
+  const chooseOptions = {
+    icon: "pi pi-fw pi-file",
+    iconOnly: true,
+    className: "custom-choose-btn p-button-rounded p-button-outlined",
+  };
+  const uploadOptions = {
+    icon: "pi pi-fw pi-cloud-upload",
+    iconOnly: true,
+    className:
+      "custom-upload-btn p-button-success p-button-rounded p-button-outlined",
+  };
+  const cancelOptions = {
+    icon: "pi pi-fw pi-times",
+    iconOnly: true,
+    className:
+      "custom-cancel-btn p-button-danger p-button-rounded p-button-outlined",
+  };
+
+  const openImport = () => {
+    setShowDialogImport(true);
+  };
+
   const rightToolbarTemplate = () => {
     return (
       <React.Fragment>
-        <FileUpload
-          mode="basic"
-          accept="image/*"
-          maxFileSize={1000000}
+        <Button
           label="Import"
-          chooseLabel="Import"
-          className="mr-2 inline-block"
+          type="button"
+          icon="pi pi-upload"
+          severity="warning"
+          className="mr-2"
+          outlined
+          onClick={openImport}
         />
         <Button
           label="Export"
           icon="pi pi-upload"
           severity="help"
-          onClick={exportCSV}
+          outlined
+          onClick={exportExcel}
         />
       </React.Fragment>
     );
@@ -564,26 +728,22 @@ const Crud = () => {
 
   // Handle Filter
   const handleOnFilter = (e) => {
-    console.log("check e", e.filters);
     const departmentIdSelected = e.filters.departmentId.value?.map(
       (item) => item.departmentId
     );
     const positionIdSelected = e.filters.positionId.value?.map(
       (item) => item.id
     );
-    // console.log("check departmentIdSelected", departmentIdSelected);
     setLazyParams({
       ...lazyParams,
       id: e.filters?.id.value,
       fname: e.filters?.fname.value,
       lname: e.filters?.lname.value,
       positionIds: positionIdSelected,
-      // departmentId: e.filters?.departmentId.value,
       departmentIds: departmentIdSelected,
     });
   };
 
-  // Handle Sort:
   const handleOnSort = (e) => {
     if (e.sortField === "id" && lazyParams.sortBy === null) {
       setLazyParams({
@@ -607,6 +767,12 @@ const Crud = () => {
         sortDir: lazyParams.sortDir === "ASC" ? "DESC" : "ASC",
       });
     }
+  };
+  const validateEmail = (mail) => {
+    if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail)) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -637,7 +803,7 @@ const Crud = () => {
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} employees"
             rows={size}
-            rowsPerPageOptions={[5, 10, 25]}
+            rowsPerPageOptions={[5, 10, 15]}
             className="datatable-responsive"
             onFilter={(e) => {
               handleOnFilter(e);
@@ -655,6 +821,12 @@ const Crud = () => {
             responsiveLayout="scroll"
           >
             <Column selectionMode="multiple" />
+            <Column
+              header="No."
+              headerStyle={{ width: "4rem" }}
+              body={(data, options) => options.rowIndex + 1}
+            ></Column>
+
             <Column
               field="id"
               header="Id"
@@ -687,14 +859,14 @@ const Crud = () => {
               field="gender"
               header="Gender"
               body={genderBodyTemplate}
-              headerStyle={{ minWidth: "8rem" }}
+              headerStyle={{ minWidth: "5rem" }}
             />
 
             <Column
               field="dob"
               header="Date of Birth"
               body={dobBodyTemplate}
-              headerStyle={{ minWidth: "10rem" }}
+              headerStyle={{ minWidth: "9rem" }}
             />
 
             <Column
@@ -709,8 +881,8 @@ const Crud = () => {
               header="Position"
               filterField="positionId"
               showFilterMenu={false}
-              filterMenuStyle={{ width: "10rem" }}
-              style={{ minWidth: "10rem" }}
+              filterMenuStyle={{ minWidth: "5rem" }}
+              style={{ minWidth: "4rem" }}
               body={positionBodyTemplate}
               filter
               filterElement={positionFilterTemplate}
@@ -721,8 +893,8 @@ const Crud = () => {
               header="Department"
               filterField="departmentId"
               showFilterMenu={false}
-              filterMenuStyle={{ width: "8rem" }}
-              style={{ minWidth: "8rem" }}
+              filterMenuStyle={{ minWidth: "5rem" }}
+              style={{ minWidth: "4rem" }}
               body={departmentBodyTemplate}
               filter
               filterElement={deptFilterTemplate}
@@ -742,7 +914,7 @@ const Crud = () => {
             <Column
               header="Action"
               body={actionBodyTemplate}
-              headerStyle={{ minWidth: "10rem" }}
+              headerStyle={{ minWidth: "9rem" }}
             />
           </DataTable>
           <Dialog
@@ -768,7 +940,9 @@ const Crud = () => {
                   })}
                 />
                 {submitted && !employee.fname && (
-                  <small className="p-invalid">First name is required.</small>
+                  <small className="p-invalid text-red-500">
+                    First name is required.
+                  </small>
                 )}
               </div>
               <div className="field col">
@@ -783,7 +957,9 @@ const Crud = () => {
                   })}
                 />
                 {submitted && !employee.lname && (
-                  <small className="p-invalid">Last name is required.</small>
+                  <small className="p-invalid text-red-500">
+                    Last name is required.
+                  </small>
                 )}
               </div>
             </div>
@@ -795,9 +971,14 @@ const Crud = () => {
                 onChange={(e) => onChangeInput(e, "email")}
                 required
                 className={classNames({
-                  "p-invalid": submitted && !employee.email,
+                  "p-invalid text-red-500": submitted && !employee.email,
                 })}
               />
+              {submitted && !validateEmail(employee.email) && (
+                <small className="p-invalid text-red-500">
+                  Email is invalid.
+                </small>
+              )}
             </div>
             <div className="field">
               <label htmlFor="phone">Phone</label>
@@ -807,9 +988,14 @@ const Crud = () => {
                 onChange={(e) => onChangeInput(e, "phone")}
                 required
                 className={classNames({
-                  "p-invalid": submitted && !employee.phone,
+                  "p-invalid text-red-500": submitted && !employee.phone,
                 })}
               />
+              {submitted && !employee.fname && (
+                <small className="p-invalid text-red-500">
+                  Phone is required.
+                </small>
+              )}
             </div>
             <div className="field">
               <label htmlFor="address">Address</label>
@@ -819,9 +1005,14 @@ const Crud = () => {
                 onChange={(e) => onChangeInput(e, "address")}
                 required
                 className={classNames({
-                  "p-invalid": submitted && !employee.address,
+                  "p-invalid text-red-500": submitted && !employee.address,
                 })}
               />
+              {submitted && !employee.fname && (
+                <small className="p-invalid text-red-500">
+                  Address is required.
+                </small>
+              )}
             </div>
 
             <div className="formgrid grid">
@@ -834,6 +1025,9 @@ const Crud = () => {
                   min="1950-01-01"
                   max="2100-01-01"
                   type="date"
+                  className={classNames({
+                    "p-invalid text-red-500": submitted && !employee.dob,
+                  })}
                 />
               </div>
 
@@ -847,6 +1041,9 @@ const Crud = () => {
                   optionLabel="name"
                   optionValue="name"
                   placeholder="Select one"
+                  className={classNames({
+                    "p-invalid text-red-500": submitted && !employee.gender,
+                  })}
                 />
               </div>
             </div>
@@ -862,6 +1059,9 @@ const Crud = () => {
                   options={positions}
                   optionLabel="name"
                   optionValue="id"
+                  className={classNames({
+                    "p-invalid text-red-500": submitted && !employee.positionId,
+                  })}
                 />
               </div>
 
@@ -875,6 +1075,10 @@ const Crud = () => {
                   options={departments}
                   optionLabel="name"
                   optionValue="departmentId"
+                  className={classNames({
+                    "p-invalid text-red-500":
+                      submitted && !employee.departmentId,
+                  })}
                 />
               </div>
             </div>
@@ -919,6 +1123,40 @@ const Crud = () => {
                   Are you sure you want to delete the selected employees?
                 </span>
               )}
+            </div>
+          </Dialog>
+
+          <Dialog
+            visible={showDialogImport}
+            style={{ width: "600px" }}
+            header="Import"
+            modal
+            onHide={() => setShowDialogImport(false)}
+          >
+            <div className="flex align-items-center justify-content-center">
+              <Toast ref={toast}></Toast>
+              <FileUpload
+                ref={fileUploadRef}
+                name="file"
+                mode="advanced"
+                url="http://localhost:8080/api/excel/upload"
+                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                chooseLabel="Import"
+                maxFileSize={10000000}
+                className="mr-2 inline-block w-full"
+                onUpload={onTemplateUpload}
+                onSelect={onTemplateSelect}
+                onError={onTemplateClear}
+                onClear={onTemplateClear}
+                emptyTemplate={emptyTemplate}
+                headerTemplate={headerTemplate}
+                itemTemplate={itemTemplate}
+                chooseOptions={chooseOptions}
+                uploadOptions={uploadOptions}
+                cancelOptions={cancelOptions}
+                customUpload={true}
+                uploadHandler={onTemplateUpload}
+              />
             </div>
           </Dialog>
         </div>

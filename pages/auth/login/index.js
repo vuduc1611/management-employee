@@ -8,6 +8,8 @@ import { LayoutContext } from "../../../layout/context/layoutcontext";
 import { InputText } from "primereact/inputtext";
 import { classNames } from "primereact/utils";
 
+// http://localhost:3000/auth/login
+
 const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [checked, setChecked] = useState(false);
@@ -22,18 +24,18 @@ const LoginPage = () => {
   return (
     <div className={containerClassName}>
       <div className="flex flex-column align-items-center justify-content-center">
-        <img
+        {/* <img
           src="https://viettel.com.vn/media/viettel/original_images/Logo_Viettel_Networks.PNG"
           alt="VTnet logo"
           className="mb-5 w-6rem flex-shrink-0"
-        />
+        /> */}
         {/* <img src={`/layout/images/logo-${layoutConfig.colorScheme === 'light' ? 'dark' : 'white'}.svg`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" /> */}
         <div
           style={{
             borderRadius: "56px",
             padding: "0.3rem",
             background:
-              "linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)",
+              "linear-gradient(180deg, #ff3d32 10%, rgba(33, 150, 243, 0) 30%)",
           }}
         >
           <div
@@ -41,15 +43,13 @@ const LoginPage = () => {
             style={{ borderRadius: "53px" }}
           >
             <div className="text-center mb-5">
-              <img
+              {/* <img
                 src="/demo/images/login/avatar.png"
                 alt="Image"
                 height="50"
                 className="mb-3"
-              />
-              <div className="text-900 text-3xl font-medium mb-3">
-                Welcome, Isabel!
-              </div>
+              /> */}
+              <div className="text-900 text-3xl font-medium mb-3">Welcome!</div>
               <span className="text-600 font-medium">Sign in to continue</span>
             </div>
 
@@ -95,15 +95,16 @@ const LoginPage = () => {
                   <label htmlFor="rememberme1">Remember me</label>
                 </div>
                 <a
-                  className="font-medium no-underline ml-2 text-right cursor-pointer"
-                  style={{ color: "var(--primary-color)" }}
+                  className="font-medium no-underline ml-2 text-right cursor-pointer text-green-500"
+                  // style={{ color: "var(--primary-color)" }}
                 >
                   Forgot password?
                 </a>
               </div>
               <Button
                 label="Sign In"
-                className="w-full p-3 text-xl"
+                severity="danger"
+                className="w-full p-3 text-xl "
                 onClick={() => router.push("/")}
               ></Button>
             </div>
