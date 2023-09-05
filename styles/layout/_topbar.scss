@@ -86,6 +86,12 @@
       margin-left: 1rem;
     }
   }
+  .p-menu {
+    position: absolute;
+    top: 0 !important;
+    right: 0 !important;
+    margin-top: 5rem;
+  }
 }
 
 @media (max-width: 991px) {
@@ -126,6 +132,12 @@
 
       &.layout-topbar-menu-mobile-active {
         display: block;
+        .p-menu {
+          position: static;
+          top: 0rem !important;
+          right: 0rem !important;
+          margin-top: 0rem;
+        }
       }
 
       .layout-topbar-button {

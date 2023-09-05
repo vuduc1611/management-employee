@@ -46,14 +46,12 @@ const Crud = () => {
   useEffect(() => {
     fetchData();
   }, []);
-  // click -> nut CREATE -> state bat su kien dong mo
   const openNew = () => {
     setDepartment(emptyDepartment);
     setSubmitted(false);
     setDepartmentDialog(true);
   };
 
-  // an dialog
   const hideDialog = () => {
     setSubmitted(false);
     setDepartmentDialog(false);

@@ -1,0 +1,77 @@
+@import url("https://fonts.googleapis.com/css?family=Manjari:400,700&display=swap");
+
+.calendar {
+  display: block;
+  position: absolute;
+  width: 350px;
+  transform: translate(-15rem, 4rem);
+  box-shadow: 1px 2px 3px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  z-index: 10000;
+  background-color: beige;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px 6px 0 0;
+  background-color: #1abc9c;
+  color: #fff;
+}
+
+.nav {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #fff;
+  border-radius: 99px;
+  outline: 0;
+  background-color: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.datetime {
+  margin: 0 auto;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.week-container,
+.day-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.week-cell,
+.day-cell {
+  flex: 0 0 calc(100% / 7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+}
+
+.day-cell {
+  &--faded {
+    opacity: 0.4;
+  }
+
+  &--today {
+    border-radius: 99px;
+    background-color: #1abc9c;
+    color: #fff;
+  }
+}
+@media (max-width: 991px) {
+  .calendar {
+    display: block;
+    position: absolute;
+    width: 350px;
+    transform: translate(-11rem, 4rem);
+    box-shadow: 1px 2px 3px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    z-index: 10000;
+    background-color: beige;
+  }
+}

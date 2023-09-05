@@ -2,9 +2,9 @@ import axiosClient from "./axiosClient";
 
 // url: localhost:3000/api/positions
 const positionApi = {
-  getAll: () => {
+  getAll: async () => {
     const url = "/positions";
-    return axiosClient.get(url);
+    return await axiosClient.get(url);
   },
   get: (id) => {
     const url = `/positions/${id}`;

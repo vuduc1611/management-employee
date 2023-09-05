@@ -14,10 +14,9 @@ import { FilterMatchMode } from "primereact/api";
 import employeeApi from "../../api/employeeApi";
 import positionApi from "../../api/positionApi";
 import departmentApi from "../../api/departmentApi";
-import { Tooltip } from "primereact/tooltip";
-import { Tag } from "primereact/tag";
 import { ProgressBar } from "primereact/progressbar";
 import { Image } from "primereact/image";
+import { useSelector, useDispatch } from "react-redux";
 
 const Crud = () => {
   const emptyEmployee = {
@@ -29,7 +28,6 @@ const Crud = () => {
     address: "",
     email: "",
     phone: "",
-    password: "",
     positionId: null,
     departmentId: null,
   };
@@ -89,10 +87,13 @@ const Crud = () => {
 
   const [showDialogImport, setShowDialogImport] = useState(false);
   const [totalSize, setTotalSize] = useState(0);
+  const auth = useSelector((state) => state.auth);
+  // const dispatch = useDispatch();
 
   const fetchData = async () => {
     try {
-      const resEmp = await employeeApi.getAllPaginator(lazyParams);
+      const resEmp = await employeeApi.getAllPaginator(lazyParams, auth.token);
+
       setEmployees(resEmp.content);
       setTotalRecords(resEmp.totalElements);
       setSize(resEmp.size);
@@ -102,7 +103,10 @@ const Crud = () => {
 
       const resDept = await departmentApi.getAll();
       setDepartments(resDept);
+
+      //
     } catch (error) {
+      console.log("error");
       console.log(error);
     }
   };
@@ -123,11 +127,11 @@ const Crud = () => {
     setFirst(0);
     setLazyParams(initFilterParams);
     setFilters({
-      id: { value: null },
-      fname: { value: null },
-      lname: { value: null },
-      positionIds: { value: null },
-      departmentIds: { value: null },
+      id: { value: null, matchMode: FilterMatchMode.EQUALS },
+      fname: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      lname: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      positionId: { value: null, matchMode: FilterMatchMode.IN },
+      departmentId: { value: null, matchMode: FilterMatchMode.IN },
     });
   };
 
@@ -152,7 +156,7 @@ const Crud = () => {
         maxSelectedLabels={1}
         placeholder="Select"
         className="p-column-filter"
-        style={{ minWidth: "8rem" }}
+        style={{ minWidth: "10rem" }}
       />
     );
   };
@@ -178,8 +182,7 @@ const Crud = () => {
         maxSelectedLabels={1}
         placeholder="Select"
         className="p-column-filter"
-        style={{ minWidth: "8rem" }}
-        // style={{ minWidth: "12rem" }}
+        style={{ minWidth: "10rem" }}
       />
     );
   };
@@ -217,33 +220,54 @@ const Crud = () => {
       if (employee.id) {
         const index = findIndexById(employee.id);
         _employees[index] = _employee;
-        toast.current.show({
-          severity: "success",
-          summary: "Successful",
-          detail: "Employee Updated",
-          life: 3000,
-        });
-        await employeeApi.update(_employee).then((res) => {
-          setEmployees(res.content);
-        });
+        try {
+          await employeeApi.update(_employee).then((res) => {
+            setEmployees(res.content);
+          });
+          toast.current.show({
+            severity: "success",
+            summary: "Successful",
+            detail: "Employee Updated",
+            life: 3000,
+          });
+          setEmployeeDialog(false);
+          setEventUpdate(!eventUpdate);
+        } catch (error) {
+          console.log("error", error);
+          toast.current.show({
+            severity: "error",
+            summary: "Failed",
+            detail: "Error",
+            life: 3000,
+          });
+        }
       } else {
         _employee.id = createId();
-        _employee.password = createPass();
         _employees.push(_employee);
-        toast.current.show({
-          severity: "success",
-          summary: "Successful",
-          detail: "Product Created",
-          life: 3000,
-        });
-        await employeeApi.create(_employee).then((res) => {
-          setEmployees(res.content);
-        });
+        try {
+          await employeeApi.create(_employee).then((res) => {
+            setEmployees(res.content);
+          });
+          setEmployees(_employees);
+          setEmployee(emptyEmployee);
+          setEmployeeDialog(false);
+          setEventUpdate(!eventUpdate);
+          toast.current.show({
+            severity: "success",
+            summary: "Successful",
+            detail: "Product Created",
+            life: 3000,
+          });
+        } catch (error) {
+          toast.current.show({
+            severity: "error",
+            summary: "Failed",
+            detail: "Error",
+            life: 3000,
+          });
+          console.log("error", error);
+        }
       }
-      setEmployees(_employees);
-      setEmployee(emptyEmployee);
-      setEmployeeDialog(false);
-      setEventUpdate(!eventUpdate);
     }
   };
 
@@ -273,6 +297,11 @@ const Crud = () => {
       });
     } catch (error) {
       console.log(error);
+      toast.current.show({
+        severity: "error",
+        summary: "Failed",
+        detail: "File Uploaded",
+      });
     }
   };
 
@@ -291,16 +320,10 @@ const Crud = () => {
     const index = totalRecords + 1;
     return index;
   };
-  const createPass = () => {
-    // const passRaw = employee.fname.concat(employee.lname);
-    // const pass = passRaw.replace(/ /g, "");
-    const pass = 123456;
-    return pass;
-  };
 
-  const exportCSV = () => {
-    dt.current.exportCSV();
-  };
+  // const exportCSV = () => {
+  //   dt.current.exportCSV();
+  // };
 
   const exportExcel = async () => {
     const employeeDataAll = await employeeApi.getAllData().then((res) => res);
@@ -311,7 +334,6 @@ const Crud = () => {
         bookType: "xlsx",
         type: "array",
       });
-
       saveAsExcelFile(excelBuffer, "employees");
     });
   };
@@ -357,6 +379,11 @@ const Crud = () => {
         life: 3000,
       });
     } catch (error) {
+      toast.current.show({
+        severity: "error",
+        summary: "Failed",
+        detail: "File Uploaded",
+      });
       console.log(error);
     }
   };
@@ -877,12 +904,11 @@ const Crud = () => {
             />
 
             <Column
-              // field="positionId"
               header="Position"
               filterField="positionId"
               showFilterMenu={false}
-              filterMenuStyle={{ minWidth: "5rem" }}
-              style={{ minWidth: "4rem" }}
+              filterMenuStyle={{ minWidth: "8rem" }}
+              style={{ minWidth: "10rem" }}
               body={positionBodyTemplate}
               filter
               filterElement={positionFilterTemplate}
@@ -893,23 +919,12 @@ const Crud = () => {
               header="Department"
               filterField="departmentId"
               showFilterMenu={false}
-              filterMenuStyle={{ minWidth: "5rem" }}
-              style={{ minWidth: "4rem" }}
+              filterMenuStyle={{ minWidth: "8rem" }}
+              style={{ minWidth: "10rem" }}
               body={departmentBodyTemplate}
               filter
               filterElement={deptFilterTemplate}
             />
-
-            {/* <Column
-              header="Agent"
-              filterField="representative"
-              showFilterMenu={false}
-              filterMenuStyle={{ width: "14rem" }}
-              style={{ minWidth: "14rem" }}
-              body={representativeBodyTemplate}
-              filter
-              filterElement={representativeRowFilterTemplate}
-            /> */}
 
             <Column
               header="Action"
@@ -917,6 +932,15 @@ const Crud = () => {
               headerStyle={{ minWidth: "9rem" }}
             />
           </DataTable>
+          {/* <EditOrNewEm
+            employee={employee}
+            positions={positions}
+            departments={departments}
+            employeeDialog={employeeDialog}
+            setEmployeeDialog={setEmployeeDialog}
+            employees={employees}
+            // toast={toast}
+          /> */}
           <Dialog
             visible={employeeDialog}
             style={{ width: "650px" }}
@@ -930,7 +954,7 @@ const Crud = () => {
               <div className="field col">
                 <label htmlFor="fname">First Name</label>
                 <InputText
-                  id="name"
+                  id="fname"
                   value={employee.fname}
                   onChange={(e) => onChangeInput(e, "fname")}
                   required
@@ -948,7 +972,7 @@ const Crud = () => {
               <div className="field col">
                 <label htmlFor="lname">Last Name</label>
                 <InputText
-                  id="name"
+                  id="lname"
                   value={employee.lname}
                   onChange={(e) => onChangeInput(e, "lname")}
                   required
@@ -1008,7 +1032,7 @@ const Crud = () => {
                   "p-invalid text-red-500": submitted && !employee.address,
                 })}
               />
-              {submitted && !employee.fname && (
+              {submitted && !employee.address && (
                 <small className="p-invalid text-red-500">
                   Address is required.
                 </small>

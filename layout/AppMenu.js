@@ -34,14 +34,14 @@ const AppMenu = () => {
     {
       label: "Your Company",
       items: [
+        // {
+        //   label: "Organization",
+        //   icon: "pi pi-fw  pi-table",
+        //   to: "/management/organization",
+        // },
+
         {
           label: "Organization",
-          icon: "pi pi-fw  pi-table",
-          to: "/management/organization",
-        },
-        ,
-        {
-          label: "Organization 1",
           icon: "pi pi-fw pi-check-square",
           to: "/management/orgchart",
         },

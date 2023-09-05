@@ -3,9 +3,9 @@ import axiosClient from "./axiosClient";
 // url: localhost:8080/api/departments
 
 const departmentApi = {
-  getAll: () => {
+  getAll: async () => {
     const url = "/departments";
-    return axiosClient.get(url);
+    return await axiosClient.get(url);
   },
   findByDept: (id) => {
     const url = `/departments/${id}`;

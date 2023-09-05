@@ -129,7 +129,7 @@ const Layout = (props) => {
   return (
     <React.Fragment>
       <Head>
-        <title>Sakai by PrimeReact | Free Admin Template for NextJS</title>
+        <title>Dash Board</title>
         <meta charSet="UTF-8" />
         <meta
           name="description"
