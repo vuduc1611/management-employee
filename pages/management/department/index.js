@@ -6,12 +6,13 @@ import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
+import { Menu } from "primereact/menu";
 import React, { useEffect, useRef, useState } from "react";
 import employeeApi from "../../api/employeeApi";
 import departmentApi from "../../api/departmentApi";
 import positionApi from "../../api/positionApi";
 
-const Crud = () => {
+const DepartmentDashBoard = () => {
   const emptyDepartment = {
     departmentId: null,
     name: "",
@@ -25,6 +26,9 @@ const Crud = () => {
   const [positions, setPositions] = useState(null);
   const [employees, setEmployees] = useState(null);
   const [departments, setDepartments] = useState(null);
+  const [searchDepartment, setSearchDepartment] = useState(false);
+  const [listQty, setListQty] = useState(null);
+  // const [hideSearch, setHideSearch] = useState(false);
 
   const [departmentDialog, setDepartmentDialog] = useState(false);
   const [deleteDepartmentDialog, setDeleteDepartmentDialog] = useState(false);
@@ -33,8 +37,7 @@ const Crud = () => {
 
   const fetchData = async () => {
     try {
-      const resPos = await positionApi.getAll();
-      setPositions(resPos);
+      await positionApi.getAll().then((res) => setPositions(res));
 
       const resDept = await departmentApi.getAll();
       console.log("check resDEpt", resDept);
@@ -118,8 +121,7 @@ const Crud = () => {
     let _departments = departments.filter(
       (val) => val.departmentId !== department.departmentId
     );
-    await departmentApi.deleteOne(department.departmentId);
-    // DepartmentService.deleteDepartment(department.departmentId);
+    await departmentApi.deleteOne(department.departmentId).then((res) => res);
     setDepartments(_departments);
     setDeleteDepartmentDialog(false);
     setDepartment(emptyDepartment);
@@ -155,13 +157,11 @@ const Crud = () => {
     let ids = [];
     selectedDepartments.forEach((item) => ids.push(item.departmentId));
     let _departments = departments.filter((val) => {
-      // return !ids.includes(val.departmentId);
       return !selectedDepartments.includes(val);
     });
     console.log("check _departments", _departments);
     setDepartments(_departments);
     await departmentApi.deleteMany(ids);
-    // DepartmentService.deleteDepartments(ids);
     setDeleteDepartmentsDialog(false);
     setSelectedDepartments(null);
 
@@ -203,22 +203,6 @@ const Crud = () => {
     );
   };
 
-  // const rightToolbarTemplate = () => {
-  //   return (
-  //     <React.Fragment>
-  //       <FileUpload
-  //         mode="basic"
-  //         accept="image/*"
-  //         maxFileSize={1000000}
-  //         label="Import"
-  //         chooseLabel="Import"
-  //         className="mr-2 inline-block"
-  //       />
-  //       <Button label="Export" icon="pi pi-upload" severity="help" />
-  //     </React.Fragment>
-  //   );
-  // };
-
   const hideDepartmentDialog = () => {
     setSubmitted(false);
     setDepartmentDialog(false);
@@ -236,6 +220,21 @@ const Crud = () => {
       <Button label="Save" icon="pi pi-check" text onClick={saveDepartment} />
     </>
   );
+  const confirmSearchDepartment = async (rowData) => {
+    const employeesInDept = await departmentApi
+      .findByDept(rowData.departmentId)
+      .then((res) => res);
+
+    setListQty(
+      positions.map((pos) => ({
+        id: pos.id,
+        name: pos.name,
+        qty: employeesInDept.filter((e) => e.positionId === pos.id).length,
+      }))
+    );
+    setDepartment(rowData);
+    setSearchDepartment(true);
+  };
 
   const actionBodyTemplate = (rowData) => {
     return (
@@ -321,6 +320,9 @@ const Crud = () => {
       </>
     );
   };
+  const hideSearch = () => {
+    setSearchDepartment(false);
+  };
 
   return (
     <div className="grid crud-demo">
@@ -340,10 +342,12 @@ const Crud = () => {
             selection={selectedDepartments}
             onSelectionChange={(e) => setSelectedDepartments(e.value)}
             dataKey="departmentId"
+            paginator
             rows={5}
+            rowsPerPageOptions={[5, 10, 25]}
             showGridlines
             className="datatable-responsive"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            // paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             // globalFilter={globalFilter}
             emptyMessage="No department found."
             header={header}
@@ -356,21 +360,21 @@ const Crud = () => {
             <Column
               field="departmentId"
               header="Id"
-              sortable
+              // sortable
               body={idBodyTemplate}
               headerStyle={{ minWidth: "4rem" }}
             ></Column>
             <Column
               field="name"
               header="Name"
-              sortable
+              // sortable
               body={nameBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}
             ></Column>
             <Column
               field="description"
               header="Description"
-              sortable
+              // sortable
               body={descriptionBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}
             ></Column>
@@ -457,10 +461,27 @@ const Crud = () => {
               )}
             </div>
           </Dialog>
+          <Dialog
+            visible={searchDepartment}
+            style={{ width: "450px" }}
+            // header="Confirm"
+            header={`Bộ phận ${department.name}`}
+            modal
+            onHide={hideSearch}
+          >
+            {/* <div className="card"> */}
+            <div>
+              <DataTable value={listQty} tableStyle={{ minWidth: "20rem" }}>
+                <Column field="id" header="Id"></Column>
+                <Column field="name" header="Position"></Column>
+                <Column field="qty" header="Quality"></Column>
+              </DataTable>
+            </div>
+          </Dialog>
         </div>
       </div>
     </div>
   );
 };
 
-export default Crud;
+export default DepartmentDashBoard;

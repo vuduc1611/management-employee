@@ -39,10 +39,10 @@ const employeeApi = {
     const url = `/employees/many?ids=${ids}`;
     return await axiosClient.delete(url);
   },
-  // findByDept: (id) => {
-  //   const url = `/departments/${id}`;
-  //   return axiosClient.get(url);
-  // },
+  findMany: async (ids) => {
+    const url = `/employees/findmany?ids=${ids}`;
+    return axiosClient.get(url);
+  },
   findByDeptAndPos: (idDept, idPos) => {
     const url = `/employees/dept/${idDept}/pos/${idPos}`;
     return axiosClient.get(url);

@@ -18,7 +18,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { Image } from "primereact/image";
 import { useSelector, useDispatch } from "react-redux";
 
-const Crud = () => {
+const EmployeeDashBoard = () => {
   const emptyEmployee = {
     id: null,
     fname: "",
@@ -87,12 +87,14 @@ const Crud = () => {
 
   const [showDialogImport, setShowDialogImport] = useState(false);
   const [totalSize, setTotalSize] = useState(0);
-  const auth = useSelector((state) => state.auth);
+  // const auth = useSelector((state) => state.auth);
   // const dispatch = useDispatch();
 
   const fetchData = async () => {
     try {
-      const resEmp = await employeeApi.getAllPaginator(lazyParams, auth.token);
+      // const token = localStorage.getItem("token");
+      // const token = "";
+      const resEmp = await employeeApi.getAllPaginator(lazyParams);
 
       setEmployees(resEmp.content);
       setTotalRecords(resEmp.totalElements);
@@ -1189,4 +1191,4 @@ const Crud = () => {
   );
 };
 
-export default Crud;
+export default EmployeeDashBoard;

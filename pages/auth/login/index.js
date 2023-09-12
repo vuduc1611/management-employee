@@ -11,8 +11,8 @@ import authService from "../../api/AuthServices/authService";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { MultiSelect } from "primereact/multiselect";
-import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../../features/auth/authSlice";
+// import { useDispatch, useSelector } from "react-redux";
+// import { login } from "../../../features/auth/authSlice";
 
 const LoginPage = () => {
   const initUser = {
@@ -49,16 +49,12 @@ const LoginPage = () => {
   ];
 
   useEffect(() => {
-    if (
-      localStorage.getItem("user") !== null &&
-      localStorage.getItem("pass") !== null
-    ) {
+    if (localStorage.getItem("user") !== null) {
       setUsername(localStorage.getItem("user"));
-      setPassword(localStorage.getItem("pass"));
       setChecked(true);
     }
   }, []);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const onChangeInput = (e, name) => {
     const val = (e.target && e.target.value) || "";
@@ -70,13 +66,17 @@ const LoginPage = () => {
 
   const handleSignIn = async () => {
     setSubmitted(true);
+    let res;
     try {
-      const res = await authService.login({ username, password });
+      res = await authService.login({ username, password }).then((res) => res);
+
       if (checked) {
-        localStorage.setItem("user", res.username);
-        localStorage.setItem("pass", password);
+        localStorage.setItem("user", username);
+      } else {
+        localStorage.clear();
       }
-      dispatch(login(res.username));
+      localStorage.setItem("token", res.accessToken);
+      // dispatch(login(res.username));
 
       router.push("/");
     } catch (e) {

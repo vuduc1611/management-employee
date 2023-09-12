@@ -38,7 +38,7 @@ const AppTopbar = forwardRef(function AppTopbar(props, ref) {
       icon: "pi pi-id-card",
       command: async () => {
         try {
-          const username = localStorage.getItem("username");
+          const username = localStorage.getItem("user");
           await userApi.getEmployByUsername(username).then((res) =>
             setCurInfo({
               ...res,

@@ -4,19 +4,29 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Menu } from "primereact/menu";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { ProductService } from "../demo/service/ProductService";
 import { LayoutContext } from "../layout/context/layoutcontext";
-import { TimerDate } from "./TimerDate";
+import departmentApi from "./api/departmentApi";
+import employeeApi from "./api/employeeApi";
+import projectApi from "./api/projectApi";
 
 const Dashboard = () => {
-  const [products, setProducts] = useState(null);
-  const menu1 = useRef(null);
-  const menu2 = useRef(null);
+  const [data, setData] = useState({});
+  const [options, setOptions] = useState({});
+  const [employees, setEmployees] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [avgValue, setAvgValue] = useState(0);
   const { layoutConfig } = useContext(LayoutContext);
+  const [percentIncrement, setPercentIncrement] = useState(0);
 
-  useEffect(() => {
-    ProductService.getProductsSmall().then((data) => setProducts(data));
-  }, []);
+  const color = [
+    "blue",
+    "bluegray",
+    "red",
+    "yellow",
+    "green",
+    "orange",
+    "cyan",
+  ];
 
   const formatCurrency = (value) => {
     return value.toLocaleString("en-US", {
@@ -25,159 +35,204 @@ const Dashboard = () => {
     });
   };
 
+  const fetchData = async () => {
+    const departmentsList = await departmentApi.getAll().then((res) => res);
+    const employeesList = await employeeApi.getAllData().then((res) => res);
+    setEmployees(employeesList);
+    const projectList = await projectApi.getAll().then((res) => res);
+    setProjects(projectList);
+
+    const response = await departmentsList.map((department) => ({
+      name: department.name,
+      count: employeesList.filter(
+        (e) => e.departmentId === department.departmentId
+      ).length,
+    }));
+
+    const totalValue = projectList.reduce((acc, cur) => {
+      return acc + cur.value;
+    }, 0);
+    setAvgValue(totalValue / projectList.length);
+
+    const documentStyle = getComputedStyle(document.documentElement);
+    const textColor = documentStyle.getPropertyValue("--text-color");
+    const textColorSecondary = documentStyle.getPropertyValue(
+      "--text-color-secondary"
+    );
+    const surfaceBorder = documentStyle.getPropertyValue("--surface-border");
+    const dataPie = await {
+      labels: response.map((d) => d.name),
+      datasets: [
+        {
+          data: response.map((d) => d.count),
+          backgroundColor: response.map((d, index) =>
+            documentStyle.getPropertyValue(`--${color[index]}-500`)
+          ),
+          hoverBackgroundColor: response.map((d, index) =>
+            documentStyle.getPropertyValue(`--${color[index]}-400`)
+          ),
+        },
+      ],
+    };
+    const optionsPie = await {
+      plugins: {
+        legend: {
+          labels: {
+            usePointStyle: true,
+          },
+        },
+      },
+    };
+
+    const newList = {};
+    await projectList.forEach((item) => {
+      const { completedAt, value } = item;
+      const yearRaw = completedAt.split("-")[0];
+      if (newList[yearRaw]) {
+        newList[yearRaw] += value;
+      } else {
+        newList[yearRaw] = value;
+      }
+    });
+
+    const result = await Object.keys(newList)
+      .map((year) => ({
+        year: parseInt(year),
+        value: newList[year],
+      }))
+      .sort((a, b) => a.year - b.year);
+
+    console.log("check result", result);
+
+    let increment =
+      result[result.length - 1].value / result[result.length - 2].value - 1;
+    increment = increment.toFixed(4) * 100;
+    setPercentIncrement(increment);
+    const barData = await {
+      labels: result.map((item) => item.year),
+      datasets: [
+        {
+          label: "Value",
+          backgroundColor: documentStyle.getPropertyValue("--primary-500"),
+          borderColor: documentStyle.getPropertyValue("--primary-500"),
+          data: result.map((item) => item.value),
+        },
+      ],
+    };
+
+    const barOptions = await {
+      plugins: {
+        legend: {
+          labels: {
+            fontColor: textColor,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: textColorSecondary,
+            font: {
+              weight: 500,
+            },
+          },
+          grid: {
+            display: false,
+            drawBorder: false,
+          },
+        },
+        y: {
+          ticks: {
+            color: textColorSecondary,
+          },
+          grid: {
+            color: surfaceBorder,
+            drawBorder: false,
+          },
+        },
+      },
+    };
+
+    await setData({ dataPie, barData });
+    await setOptions({ optionsPie, barOptions });
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [layoutConfig]);
+
   return (
-    <div className="grid">
-      <div className="col-12 xl:col-8">
-        <div className="card">
-          <h5>Notifications</h5>
-          <DataTable value={products} rows={7} paginator>
-            <Column
-              header="Date"
-              body={(data) => (
-                <img
-                  className="shadow-2"
-                  src={`/demo/images/product/${data.image}`}
-                  alt={data.image}
-                  width="50"
-                />
-              )}
-            />
-            <Column
-              field="name"
-              header="Description"
-              sortable
-              style={{ width: "60%" }}
-            />
-            <Column
-              header="View"
-              style={{ width: "15%" }}
-              body={() => (
-                <>
-                  <Button icon="pi pi-search" type="button" text />
-                </>
-              )}
-            />
-          </DataTable>
-        </div>
-      </div>
-      {/* abc */}
-      <div className="col-12 xl:col-4">
-        <div className="card">
-          <h5>
-            <TimerDate />
-          </h5>
-          <div></div>
-          {/* <Chart type="line" data={lineData} options={lineOptions} /> */}
-        </div>
-
-        <div className="card">
-          <div className="flex align-items-center justify-content-between mb-1">
-            <h5>Your Memo</h5>
-            <div>
-              <Button
-                type="button"
-                icon="pi pi-ellipsis-v"
-                className="p-button-rounded p-button-text p-button-plain"
-                onClick={(event) => menu2.current.toggle(event)}
-              />
-              <Menu
-                ref={menu2}
-                popup
-                model={[
-                  { label: "Add New", icon: "pi pi-fw pi-plus" },
-                  { label: "Remove", icon: "pi pi-fw pi-minus" },
-                ]}
-              />
-            </div>
+    <>
+      <div className="grid p-fluid">
+        <div className="col-6 xl:col-3 h-12rem ">
+          <div className="card card-container h-10rem ">
+            <span className="block text-2xl mb-4 font-normal">
+              Total Employees{" "}
+            </span>
+            <span className="block text-center text-2xl font-bold">
+              {employees.length}
+            </span>
           </div>
+        </div>
+        <div className="col-6 xl:col-3 h-12rem ">
+          <div className="card card-container h-10rem ">
+            <span className="block text-2xl mb-4 font-normal">
+              Total Project{" "}
+            </span>
+            <span className="block text-center text-2xl font-bold">
+              {projects.length}
+            </span>
+          </div>
+        </div>
+        <div className="col-6 xl:col-3 h-12rem ">
+          <div className="card card-container h-10rem ">
+            <span className="block text-2xl mb-4 font-normal">
+              Average Value{" "}
+            </span>
+            <span className="block text-center text-2xl font-bold">
+              {formatCurrency(avgValue)}
+            </span>
+          </div>
+        </div>
+        <div className="col-6 xl:col-3 h-12rem ">
+          <div className="card card-container h-10rem ">
+            <span className="block text-2xl font-normal">
+              Rate Increment{" "}
+              <span className="block text-base font-light">from last year</span>
+            </span>
 
-          {/* <span className="block text-600 font-medium mb-3">TODAY</span>
-          <ul className="p-0 mx-0 mt-0 mb-4 list-none">
-            <li className="flex align-items-center py-2 border-bottom-1 surface-border">
-              <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">
-                <i className="pi pi-dollar text-xl text-blue-500" />
-              </div>
-              <span className="text-900 line-height-3">
-                Richard Jones
-                <span className="text-700">
-                  {" "}
-                  has purchased a blue t-shirt for{" "}
-                  <span className="text-blue-500">79$</span>
-                </span>
-              </span>
-            </li>
-            <li className="flex align-items-center py-2">
-              <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-orange-100 border-circle mr-3 flex-shrink-0">
-                <i className="pi pi-download text-xl text-orange-500" />
-              </div>
-              <span className="text-700 line-height-3">
-                Your request for withdrawal of{" "}
-                <span className="text-blue-500 font-medium">2500$</span> has
-                been initiated.
-              </span>
-            </li>
-          </ul>
-
-          <span className="block text-600 font-medium mb-3">YESTERDAY</span>
-          <ul className="p-0 m-0 list-none">
-            <li className="flex align-items-center py-2 border-bottom-1 surface-border">
-              <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">
-                <i className="pi pi-dollar text-xl text-blue-500" />
-              </div>
-              <span className="text-900 line-height-3">
-                Keyser Wick
-                <span className="text-700">
-                  {" "}
-                  has purchased a black jacket for{" "}
-                  <span className="text-blue-500">59$</span>
-                </span>
-              </span>
-            </li>
-            <li className="flex align-items-center py-2 border-bottom-1 surface-border">
-              <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-pink-100 border-circle mr-3 flex-shrink-0">
-                <i className="pi pi-question text-xl text-pink-500" />
-              </div>
-              <span className="text-900 line-height-3">
-                Jane Davis
-                <span className="text-700">
-                  {" "}
-                  has posted a new questions about your product.
-                </span>
-              </span>
-            </li>
-          </ul> */}
-
-          {/* start */}
-          <span className="block text-600 font-medium mb-3">TODAY</span>
-          <ul className="p-0 mx-0 mt-0 mb-4 list-none">
-            <li className="flex align-items-center py-2 border-bottom-1 surface-border">
-              <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-blue-100 border-circle mr-3 flex-shrink-0">
-                <i className="pi pi-dollar text-xl text-blue-500" />
-              </div>
-              <span className="text-900 line-height-3">
-                Richard Jones
-                <span className="text-700">
-                  {" "}
-                  has purchased a blue t-shirt for{" "}
-                  <span className="text-blue-500">79$</span>
-                </span>
-              </span>
-            </li>
-            <li className="flex align-items-center py-2">
-              <div className="w-3rem h-3rem flex align-items-center justify-content-center bg-orange-100 border-circle mr-3 flex-shrink-0">
-                <i className="pi pi-download text-xl text-orange-500" />
-              </div>
-              <span className="text-700 line-height-3">
-                Your request for withdrawal of{" "}
-                <span className="text-blue-500 font-medium">2500$</span> has
-                been initiated.
-              </span>
-            </li>
-          </ul>
-          {/* End */}
+            <span className="block text-center text-2xl font-bold">
+              {`${percentIncrement}%`}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+      <div className="grid p-fluid">
+        <div className="col-12 xl:col-6">
+          <div className="card">
+            <h5 className="text-left w-full">Project Value</h5>
+            <Chart
+              type="bar"
+              data={data.barData}
+              options={options.barOptions}
+              className=" h-22rem"
+            ></Chart>
+          </div>
+        </div>
+
+        <div className="col-12 xl:col-6">
+          <div className="card flex flex-column align-items-center">
+            <h5 className="text-left w-full">Chart Department</h5>
+            <Chart
+              type="pie"
+              data={data.dataPie}
+              options={options.optionsPie}
+              className=" h-22rem"
+            ></Chart>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

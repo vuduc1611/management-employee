@@ -12,34 +12,18 @@ const AppMenu = () => {
       items: [{ label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" }],
     },
     {
-      label: "Your Apps",
+      label: "Your Admin",
       items: [
         {
-          label: "Profiles",
+          label: "User",
           icon: "pi pi-fw pi-id-card",
-          to: "/management/department",
-        },
-        {
-          label: "Payroll",
-          icon: "pi pi-fw pi-check-square",
-          to: "/management/input",
-        },
-        {
-          label: "Qualifications",
-          icon: "pi pi-fw pi-check-square",
-          to: "/management/list",
+          to: "/admin",
         },
       ],
     },
     {
       label: "Your Company",
       items: [
-        // {
-        //   label: "Organization",
-        //   icon: "pi pi-fw  pi-table",
-        //   to: "/management/organization",
-        // },
-
         {
           label: "Organization",
           icon: "pi pi-fw pi-check-square",
@@ -55,19 +39,23 @@ const AppMenu = () => {
           icon: "pi pi-fw pi-user",
           to: "/management/employee",
         },
-        { label: "Projects", icon: "pi pi-fw pi-list", to: "/management/list" },
-      ],
-    },
-    {
-      label: "Support",
-      items: [
         {
-          label: "Need Help?",
-          icon: "pi pi-fw pi-question",
-          to: "/documentation",
+          label: "Projects",
+          icon: "pi pi-fw pi-list",
+          to: "/management/project",
         },
       ],
     },
+    // {
+    //   label: "Support",
+    //   items: [
+    //     {
+    //       label: "Need Help?",
+    //       icon: "pi pi-fw pi-question",
+    //       to: "/documentation",
+    //     },
+    //   ],
+    // },
   ];
 
   return (

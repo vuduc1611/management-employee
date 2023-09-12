@@ -6,27 +6,27 @@ import "primereact/resources/primereact.css";
 import "primeflex/primeflex.css";
 import "primeicons/primeicons.css";
 import "../styles/layout/layout.scss";
-import store from "./store";
-import { Provider } from "react-redux";
+// import store from "./store";
+// import { Provider } from "react-redux";
 
 export default function MyApp({ Component, pageProps }) {
   if (Component.getLayout) {
     return (
-      <Provider store={store}>
-        <LayoutProvider>
-          {Component.getLayout(<Component {...pageProps} />)}
-        </LayoutProvider>
-      </Provider>
+      // <Provider store={store}>
+      <LayoutProvider>
+        {Component.getLayout(<Component {...pageProps} />)}
+      </LayoutProvider>
+      // </Provider>
     );
   } else {
     return (
-      <Provider store={store}>
-        <LayoutProvider>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </LayoutProvider>
-      </Provider>
+      // <Provider store={store}>
+      <LayoutProvider>
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      </LayoutProvider>
+      // </Provider>
     );
   }
 }

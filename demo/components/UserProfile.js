@@ -5,7 +5,6 @@ import { classNames } from "primereact/utils";
 
 const UserProfile = (props) => {
   const { visible, setVisible, curInfo } = props;
-  // const { setVisible, curInfo } = props;
   return (
     <Dialog
       header="Header"

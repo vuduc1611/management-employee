@@ -7,9 +7,9 @@ const departmentApi = {
     const url = "/departments";
     return await axiosClient.get(url);
   },
-  findByDept: (id) => {
+  findByDept: async (id) => {
     const url = `/departments/${id}`;
-    return axiosClient.get(url);
+    return await axiosClient.get(url);
   },
 
   create: (req) => {
@@ -28,5 +28,9 @@ const departmentApi = {
     const url = `/departments/many?ids=${ids}`;
     return axiosClient.delete(url);
   },
+  // findQtyEmployeesByDep: () => {
+  //   const url = `/department/count`;
+  //   return axiosClient.get(url);
+  // },
 };
 export default departmentApi;
