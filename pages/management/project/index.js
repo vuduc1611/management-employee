@@ -13,7 +13,7 @@ import projectApi from "../../api/projectApi";
 import employeeApi from "../../api/employeeApi";
 import positionApi from "../../api/positionApi";
 import departmentApi from "../../api/departmentApi";
-import MembersDialog from "./MembersDialog";
+import MembersDialog from "../../../demo/components/MembersDialog";
 import { PickList } from "primereact/picklist";
 
 const ProjectDashBoard = () => {
@@ -96,21 +96,34 @@ const ProjectDashBoard = () => {
 
   const saveProject = async () => {
     setSubmitted(true);
+    console.log("check project", project);
 
-    if (project.name.trim()) {
+    if (
+      project.name.trim() ||
+      project.completedAt === "" ||
+      project.createdAt === "" ||
+      project.value
+    ) {
       let _projects = [...projects];
       let _project = { ...project };
       if (project.id) {
         const index = findIndexById(project.id);
+        if (
+          project.name.trim() &&
+          project.completedAt === "" &&
+          project.createdAt === "" &&
+          project.value
+        ) {
+          return toast.current.show({
+            severity: "error",
+            summary: "Failed",
+            detail: "All flied are mandatory",
+            life: 3000,
+          });
+        }
         _projects[index] = _project;
 
         await projectApi.update(project).then((res) => res);
-        toast.current.show({
-          severity: "success",
-          summary: "Successful",
-          detail: "Project Updated",
-          life: 3000,
-        });
       } else {
         _project.id = createId();
         await projectApi.create(project).then((res) => res);
@@ -526,12 +539,14 @@ const ProjectDashBoard = () => {
               header="Id"
               // sortable
               // body={codeBodyTemplate}
+              filter
               headerStyle={{ minWidth: "5rem" }}
             ></Column>
             <Column
               field="name"
               header="Name"
               // sortable
+              filter
               body={nameBodyTemplate}
               headerStyle={{ minWidth: "15rem" }}
             ></Column>
@@ -552,7 +567,7 @@ const ProjectDashBoard = () => {
               header="Completed At"
               // sortable
               body={completedAtBodyTemplate}
-              headerStyle={{ minWidth: "10rem" }}
+              headerStyle={{ minWidth: "12rem" }}
             ></Column>
             <Column
               field="membersId"
@@ -596,11 +611,13 @@ const ProjectDashBoard = () => {
                 required
                 autoFocus
                 className={classNames({
-                  "p-invalid": submitted && !project.name,
+                  "p-invalid text-red-500": submitted && !project.name,
                 })}
               />
               {submitted && !project.name && (
-                <small className="p-invalid">Name is required.</small>
+                <small className="p-invalid text-red-500">
+                  Name is required.
+                </small>
               )}
             </div>
             <div className="description">

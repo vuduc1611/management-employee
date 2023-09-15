@@ -11,8 +11,7 @@ import authService from "../../api/AuthServices/authService";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { MultiSelect } from "primereact/multiselect";
-// import { useDispatch, useSelector } from "react-redux";
-// import { login } from "../../../features/auth/authSlice";
+import userApi from "../../api/userApi";
 
 const LoginPage = () => {
   const initUser = {
@@ -34,7 +33,8 @@ const LoginPage = () => {
   const [registerDialog, setRegisterDialog] = useState(false);
   const [userRegister, setUserRegister] = useState(initUser);
   const [submitRegister, setSubmitRegister] = useState(false);
-  // const [rememberMe, setRememberMe] = useState(false);
+
+  const [emailSearchForgetPass, setEmailSearchForgetPass] = useState(null);
 
   const toast = useRef(null);
   const router = useRouter();
@@ -49,12 +49,12 @@ const LoginPage = () => {
   ];
 
   useEffect(() => {
-    if (localStorage.getItem("user") !== null) {
+    if (localStorage.getItem("isRememberMe") === 1) {
       setUsername(localStorage.getItem("user"));
-      setChecked(true);
+    } else {
+      setUsername("");
     }
   }, []);
-  // const dispatch = useDispatch();
 
   const onChangeInput = (e, name) => {
     const val = (e.target && e.target.value) || "";
@@ -69,28 +69,27 @@ const LoginPage = () => {
     let res;
     try {
       res = await authService.login({ username, password }).then((res) => res);
+      localStorage.setItem("user", username);
+      localStorage.setItem("token", res.accessToken);
 
       if (checked) {
-        localStorage.setItem("user", username);
+        localStorage.setItem("isRememberMe", 1);
       } else {
-        localStorage.clear();
+        localStorage.setItem("isRememberMe", 0);
       }
-      localStorage.setItem("token", res.accessToken);
-      // dispatch(login(res.username));
 
       router.push("/");
     } catch (e) {
       toast.current.show({
         severity: "error",
         summary: "Failed",
-        detail: "Username or Password is error",
+        detail: "Incorrect username or password.",
         life: 5000,
       });
     }
   };
 
   const handleSubmitRegister = async () => {
-    console.log("check", userRegister);
     if (
       userRegister.email &&
       userRegister.firstname &&
@@ -109,7 +108,7 @@ const LoginPage = () => {
         password: "",
       });
       setSubmitRegister(false);
-      console.log("check", userRegister);
+      // console.log("check", userRegister);
       toast.current.show({
         severity: "success",
         summary: "Success",
@@ -135,7 +134,26 @@ const LoginPage = () => {
       );
   };
   const backHomeLogin = () => {
-    router.reload();
+    setRegisterDialog(false);
+    // router.reload();
+  };
+  const handleSendPassToEmail = async () => {
+    try {
+      const res = await userApi
+        .sendEmail({ email: emailSearchForgetPass })
+        .then((res) => res);
+      toast.current.show({
+        severity: "success",
+        detail: `${res}`,
+        life: 3000,
+      });
+    } catch (error) {
+      toast.current.show({
+        severity: "error",
+        detail: `${error}`,
+        life: 3000,
+      });
+    }
   };
 
   return (
@@ -154,6 +172,13 @@ const LoginPage = () => {
             className="w-full surface-card py-8 px-5 sm:px-8"
             style={{ borderRadius: "53px" }}
           >
+            <div className="text-center mb-2">
+              <img
+                src={"../layout/images/Viettel_logo_2021.png"}
+                alt="VTnet logo"
+                className="mb-0 w-14rem h-auto text-center"
+              />
+            </div>
             <div className="text-center mb-5">
               <div className="text-900 text-3xl font-medium mb-3">Welcome!</div>
               <span className="text-600 font-medium">Sign in to continue</span>
@@ -252,6 +277,7 @@ const LoginPage = () => {
                   placeholder="Email"
                   autoFocus
                   className="w-full p-inputtext-sm w-10 bg-right"
+                  onChange={(e) => setEmailSearchForgetPass(e.target.value)}
                 />
               </div>
               <Button
@@ -259,7 +285,9 @@ const LoginPage = () => {
                 outlined
                 size="small"
                 className=" mr-0 block"
-                onClick={() => setForgetPassDialog(false)}
+                onClick={() => {
+                  handleSendPassToEmail();
+                }}
               ></Button>
             </Dialog>
 

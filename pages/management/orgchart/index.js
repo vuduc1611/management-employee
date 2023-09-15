@@ -2,6 +2,8 @@ import React, { useEffect, useState, useLayoutEffect } from "react";
 import { OrganizationChart } from "primereact/organizationchart";
 import departmentApi from "../../api/departmentApi";
 import positionApi from "../../api/positionApi";
+import employeeApi from "../../api/employeeApi";
+import MembersDialog from "../../../demo/components/MembersDialog";
 export default function OrgChart() {
   const getBgColor = (signal) => {
     switch (signal) {
@@ -25,6 +27,8 @@ export default function OrgChart() {
   const [positions, setPositions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectionItem, setSelectionItem] = useState(null);
+  const [employees, setEmployees] = useState(null);
+  const [employeeDialog, setEmployeeDialog] = useState(false);
   const [dataCustom, setDataCustom] = useState([
     {
       label: "Company",
@@ -40,6 +44,7 @@ export default function OrgChart() {
     const fetchData = async () => {
       await positionApi.getAll().then((res) => setPositions(res));
       await departmentApi.getAll().then((res) => setDepartments(res));
+      // await employeeApi.getAllData().then((res) => setEmployees(res));
       await departmentApi.getAll().then((response) => {
         const resCustom = response.map((value) => ({
           id: value.departmentId,
@@ -137,14 +142,20 @@ export default function OrgChart() {
   };
   const handleSelect = async (e) => {
     let { id, label, parent } = e.node;
-
     if (label === "Department") {
+      // setEmployeeDialog(false);
       const response = await filterPosByDept(id).then((res) => res);
       e.node.children = response;
     }
     if (label === "Position") {
+      // setEmployeeDialog(false);
       const response = await fillEmployeeFromPos(parent.id, id);
       e.node.children = response;
+    }
+    if (label === "Employee") {
+      const employee = await employeeApi.get(e.node.id);
+      setEmployees([{ ...employee }]);
+      setEmployeeDialog(true);
     }
     setDataCustom([...dataCustom]);
   };
@@ -176,6 +187,13 @@ export default function OrgChart() {
           }}
         />
       </div>
+      <MembersDialog
+        members={employees}
+        departments={departments}
+        positions={positions}
+        memberDialog={employeeDialog}
+        setMemberDialog={setEmployeeDialog}
+      />
     </React.Fragment>
   );
 }

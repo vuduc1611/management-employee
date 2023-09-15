@@ -1169,7 +1169,7 @@ const EmployeeDashBoard = () => {
                 accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                 chooseLabel="Import"
                 maxFileSize={10000000}
-                className="mr-2 inline-block w-full"
+                className="mr-2 inline-block w-10"
                 onUpload={onTemplateUpload}
                 onSelect={onTemplateSelect}
                 onError={onTemplateClear}

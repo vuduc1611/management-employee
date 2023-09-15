@@ -6,9 +6,25 @@ const positionApi = {
     const url = "/positions";
     return await axiosClient.get(url);
   },
-  get: (id) => {
+  get: async (id) => {
     const url = `/positions/${id}`;
-    return axiosClient.get(url);
+    return await axiosClient.get(url);
+  },
+  create: async (req) => {
+    const url = "/positions";
+    return await axiosClient.post(url, JSON.stringify(req));
+  },
+  update: async (req) => {
+    const url = "/positions";
+    return await axiosClient.put(url, JSON.stringify(req));
+  },
+  deleteOne: async (id) => {
+    const url = `/positions/${id}`;
+    return await axiosClient.delete(url);
+  },
+  deleteMany: async (ids) => {
+    const url = `/positions/many?ids=${ids}`;
+    return await axiosClient.delete(url);
   },
 };
 export default positionApi;

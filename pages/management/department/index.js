@@ -6,9 +6,7 @@ import { InputText } from "primereact/inputtext";
 import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
-import { Menu } from "primereact/menu";
 import React, { useEffect, useRef, useState } from "react";
-import employeeApi from "../../api/employeeApi";
 import departmentApi from "../../api/departmentApi";
 import positionApi from "../../api/positionApi";
 
@@ -21,26 +19,22 @@ const DepartmentDashBoard = () => {
 
   const [submitted, setSubmitted] = useState(false);
   const toast = useRef(null);
-
+  const [fetchApi, setFetchApi] = useState(false);
   const [department, setDepartment] = useState(emptyDepartment);
   const [positions, setPositions] = useState(null);
-  const [employees, setEmployees] = useState(null);
   const [departments, setDepartments] = useState(null);
   const [searchDepartment, setSearchDepartment] = useState(false);
   const [listQty, setListQty] = useState(null);
-  // const [hideSearch, setHideSearch] = useState(false);
 
   const [departmentDialog, setDepartmentDialog] = useState(false);
   const [deleteDepartmentDialog, setDeleteDepartmentDialog] = useState(false);
   const [deleteDepartmentsDialog, setDeleteDepartmentsDialog] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState(null);
-
   const fetchData = async () => {
     try {
       await positionApi.getAll().then((res) => setPositions(res));
 
-      const resDept = await departmentApi.getAll();
-      console.log("check resDEpt", resDept);
+      const resDept = await departmentApi.getAll().then((res) => res);
       setDepartments(resDept);
     } catch (error) {
       console.log(error);
@@ -48,7 +42,7 @@ const DepartmentDashBoard = () => {
   };
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchApi]);
   const openNew = () => {
     setDepartment(emptyDepartment);
     setSubmitted(false);
@@ -88,19 +82,21 @@ const DepartmentDashBoard = () => {
         await departmentApi.update(_department).then((res) => {
           setDepartments(res);
         });
+        setFetchApi(!fetchApi);
       } else {
         _department.departmentId = createId();
         _departments.push(_department);
         toast.current.show({
           severity: "success",
           summary: "Successful",
-          detail: "Product Created",
+          detail: "Department Created",
           life: 3000,
         });
         await departmentApi
           .create(_department)
           .then((res) => setDepartments(res));
       }
+      setFetchApi(!fetchApi);
 
       setDepartments(_departments);
       setDepartment(emptyDepartment);
@@ -122,6 +118,7 @@ const DepartmentDashBoard = () => {
       (val) => val.departmentId !== department.departmentId
     );
     await departmentApi.deleteOne(department.departmentId).then((res) => res);
+    setFetchApi(!fetchApi);
     setDepartments(_departments);
     setDeleteDepartmentDialog(false);
     setDepartment(emptyDepartment);
@@ -159,9 +156,9 @@ const DepartmentDashBoard = () => {
     let _departments = departments.filter((val) => {
       return !selectedDepartments.includes(val);
     });
-    console.log("check _departments", _departments);
     setDepartments(_departments);
-    await departmentApi.deleteMany(ids);
+    await departmentApi.deleteMany(ids).then((res) => res);
+    setFetchApi(!fetchApi);
     setDeleteDepartmentsDialog(false);
     setSelectedDepartments(null);
 
@@ -347,8 +344,6 @@ const DepartmentDashBoard = () => {
             rowsPerPageOptions={[5, 10, 25]}
             showGridlines
             className="datatable-responsive"
-            // paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            // globalFilter={globalFilter}
             emptyMessage="No department found."
             header={header}
             responsiveLayout="scroll"

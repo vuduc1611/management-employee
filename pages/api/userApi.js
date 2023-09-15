@@ -17,6 +17,20 @@ const userApi = {
     const url = `/user`;
     return axiosClient.put(url, JSON.stringify(req));
   },
+
+  deleteOne: async (id) => {
+    const url = `/user/${id}`;
+    return axiosClient.delete(url);
+  },
+  sendEmail: async (req) => {
+    const url = `/user/forgetPassword`;
+    return axiosClient.post(url, JSON.stringify(req));
+  },
+
+  changePassword: async (req) => {
+    const url = `/user/changePassword`;
+    return axiosClient.put(url, JSON.stringify(req));
+  },
 };
 
 export default userApi;

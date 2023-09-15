@@ -9,16 +9,22 @@ const AppMenu = () => {
   const model = [
     {
       label: "Home",
-      items: [{ label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" }],
+      items: [{ label: "Home", icon: "pi pi-fw pi-home", to: "/" }],
     },
     {
       label: "Your Admin",
       items: [
         {
           label: "User",
-          icon: "pi pi-fw pi-id-card",
+          icon: "pi pi-fw pi-users",
           to: "/admin",
         },
+
+        // {
+        //   label: "Position",
+        //   icon: "pi pi-fw  pi-bars",
+        //   to: "/management/position",
+        // },
       ],
     },
     {
@@ -26,13 +32,18 @@ const AppMenu = () => {
       items: [
         {
           label: "Organization",
-          icon: "pi pi-fw pi-check-square",
+          icon: "pi pi-fw pi-sitemap",
           to: "/management/orgchart",
         },
         {
           label: "Department",
           icon: "pi pi-fw  pi-table",
           to: "/management/department",
+        },
+        {
+          label: "Position",
+          icon: "pi pi-fw  pi-bars",
+          to: "/management/position",
         },
         {
           label: "Employee",
@@ -46,16 +57,6 @@ const AppMenu = () => {
         },
       ],
     },
-    // {
-    //   label: "Support",
-    //   items: [
-    //     {
-    //       label: "Need Help?",
-    //       icon: "pi pi-fw pi-question",
-    //       to: "/documentation",
-    //     },
-    //   ],
-    // },
   ];
 
   return (

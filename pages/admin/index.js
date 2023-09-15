@@ -408,19 +408,14 @@ const AdminDashBoard = () => {
           <DataTable
             value={users}
             filters={filters}
-            // selection={selectedDepartments}
-            // onSelectionChange={(e) => setSelectedDepartments(e.value)}
             dataKey="id"
-            // multiple
             filterDisplay="row"
             paginator
             rows={5}
             rowsPerPageOptions={[5, 10, 25]}
             showGridlines
             className="datatable-responsive"
-            // paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            // globalFilter={globalFilter}
-            emptyMessage="No department found."
+            emptyMessage="No user found."
             header={header}
             responsiveLayout="scroll"
           >
@@ -490,7 +485,7 @@ const AdminDashBoard = () => {
           <Dialog
             visible={userDialog}
             style={{ width: "650px" }}
-            header="Department"
+            header="User"
             modal
             className="p-fluid"
             footer={userDialogFooter}
