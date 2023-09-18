@@ -448,12 +448,12 @@ const EmployeeDashBoard = () => {
           summary: "Success",
           detail: "File Uploaded",
         });
-        console.log(success);
-        setShowDialogImport(false);
+        // console.log(success);
+        // setShowDialogImport(false);
         event.options.clear();
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
         toast.current.show({
           severity: "error",
           summary: "Failed",

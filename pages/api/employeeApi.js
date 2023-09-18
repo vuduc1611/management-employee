@@ -1,5 +1,6 @@
 import axios from "axios";
 import axiosClient from "./axiosClient";
+import { authHeader } from "./AuthServices/authHeader";
 
 // api/employeeApi.js
 const employeeApi = {
@@ -49,12 +50,12 @@ const employeeApi = {
   },
 
   importExcel: async (formData) => {
-    return await axios.post(
-      "http://localhost:8080/api/excel/upload",
+    return await axiosClient.post(
+      `http://localhost:8080/api/excel/upload`,
       formData,
       {
         headers: {
-          Accept: "application/json",
+          // Accept: "application/json",
           "content-type": "multipart/form-data",
         },
       }

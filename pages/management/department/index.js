@@ -9,6 +9,7 @@ import { classNames } from "primereact/utils";
 import React, { useEffect, useRef, useState } from "react";
 import departmentApi from "../../api/departmentApi";
 import positionApi from "../../api/positionApi";
+import { FilterOperator, FilterMatchMode } from "primereact/api";
 
 const DepartmentDashBoard = () => {
   const emptyDepartment = {
@@ -30,6 +31,21 @@ const DepartmentDashBoard = () => {
   const [deleteDepartmentDialog, setDeleteDepartmentDialog] = useState(false);
   const [deleteDepartmentsDialog, setDeleteDepartmentsDialog] = useState(false);
   const [selectedDepartments, setSelectedDepartments] = useState(null);
+  const [filters, setFilters] = useState({
+    departmentId: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+    },
+
+    name: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    },
+    description: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    },
+  });
   const fetchData = async () => {
     try {
       await positionApi.getAll().then((res) => setPositions(res));
@@ -341,6 +357,7 @@ const DepartmentDashBoard = () => {
             dataKey="departmentId"
             paginator
             rows={5}
+            filters={filters}
             rowsPerPageOptions={[5, 10, 25]}
             showGridlines
             className="datatable-responsive"
@@ -355,13 +372,14 @@ const DepartmentDashBoard = () => {
             <Column
               field="departmentId"
               header="Id"
-              // sortable
+              filter
               body={idBodyTemplate}
               headerStyle={{ minWidth: "4rem" }}
             ></Column>
             <Column
               field="name"
               header="Name"
+              filter
               // sortable
               body={nameBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}
@@ -369,6 +387,7 @@ const DepartmentDashBoard = () => {
             <Column
               field="description"
               header="Description"
+              filter
               // sortable
               body={descriptionBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}

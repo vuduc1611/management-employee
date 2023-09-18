@@ -8,6 +8,7 @@ import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import React, { useEffect, useRef, useState } from "react";
 import positionApi from "../../api/positionApi";
+import { FilterOperator, FilterMatchMode } from "primereact/api";
 
 const PositionDashBoard = () => {
   const emptyPosition = {
@@ -23,6 +24,18 @@ const PositionDashBoard = () => {
   const [deletePositionDialog, setDeletePositionDialog] = useState(false);
   const [deletePositionsDialog, setDeletePositionsDialog] = useState(false);
   const [selectedPositions, setSelectedPositions] = useState(null);
+
+  const [filters, setFilters] = useState({
+    id: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+    },
+
+    name: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    },
+  });
 
   const fetchData = async () => {
     try {
@@ -289,6 +302,7 @@ const PositionDashBoard = () => {
             paginator
             rows={5}
             rowsPerPageOptions={[5, 10, 25]}
+            filters={filters}
             showGridlines
             className="datatable-responsive"
             emptyMessage="No position found."
@@ -302,12 +316,14 @@ const PositionDashBoard = () => {
             <Column
               field="id"
               header="Id"
+              filter
               body={idBodyTemplate}
               headerStyle={{ minWidth: "4rem" }}
             ></Column>
             <Column
               field="name"
               header="Name"
+              filter
               body={nameBodyTemplate}
               headerStyle={{ minWidth: "8rem" }}
             ></Column>

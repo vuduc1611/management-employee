@@ -70,6 +70,7 @@ const LoginPage = () => {
     try {
       res = await authService.login({ username, password }).then((res) => res);
       localStorage.setItem("user", username);
+      localStorage.setItem("username", JSON.stringify(res));
       localStorage.setItem("token", res.accessToken);
 
       if (checked) {

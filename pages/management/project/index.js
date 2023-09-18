@@ -15,6 +15,8 @@ import positionApi from "../../api/positionApi";
 import departmentApi from "../../api/departmentApi";
 import MembersDialog from "../../../demo/components/MembersDialog";
 import { PickList } from "primereact/picklist";
+import { FilterMatchMode, FilterOperator } from "primereact/api";
+import { Calendar } from "primereact/calendar";
 
 const ProjectDashBoard = () => {
   let emptyProject = {
@@ -52,9 +54,34 @@ const ProjectDashBoard = () => {
   const [fullEmp, setFullEmp] = useState(null);
   const [source, setSource] = useState([]);
   const [targetMembers, setTargetMembers] = useState([]);
+  const [selectedProjects, setSelectedProjects] = useState([]);
+
+  const [filters, setFilters] = useState({
+    id: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+    },
+
+    name: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
+    },
+    createdAt: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
+    },
+    completedAt: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
+    },
+    value: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+    },
+  });
 
   const fetchData = async () => {
-    await projectApi.getAll().then((res) => setProjects(res));
+    await projectApi.getAll().then((res) => setProjects(getProjects(res)));
     await positionApi.getAll().then((res) => setPositions(res));
     await departmentApi.getAll().then((res) => setDepartments(res));
     await employeeApi.getAllData().then((res) => setFullEmp(res));
@@ -62,6 +89,29 @@ const ProjectDashBoard = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const getProjects = (data) => {
+    return [...(data || [])].map((d) => {
+      d.createdAt = new Date(d.createdAt);
+      d.completedAt = new Date(d.completedAt);
+
+      return d;
+    });
+  };
+  const createdAtBodyTemplate = (rowData) => {
+    return formatDate(rowData.createdAt);
+  };
+  const completedAtBodyTemplate = (rowData) => {
+    return formatDate(rowData.completedAt);
+  };
+
+  const formatDate = (value) => {
+    return value.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   const formatCurrency = (value) => {
     return value.toLocaleString("en-US", {
@@ -267,12 +317,12 @@ const ProjectDashBoard = () => {
     return arr.join("-");
   };
 
-  const createdAtBodyTemplate = (rowData) => {
-    return <span>{convertTime(rowData.createdAt)}</span>;
-  };
-  const completedAtBodyTemplate = (rowData) => {
-    return <span>{convertTime(rowData.completedAt)}</span>;
-  };
+  // const createdAtBodyTemplate = (rowData) => {
+  //   return <span>{convertTime(rowData.createdAt)}</span>;
+  // };
+  // const completedAtBodyTemplate = (rowData) => {
+  //   return <span>{convertTime(rowData.completedAt)}</span>;
+  // };
   //
   const handleDetailsMember = async (rowData) => {
     const membersCurrent = await employeeApi
@@ -419,6 +469,18 @@ const ProjectDashBoard = () => {
     </>
   );
 
+  const dateFilterTemplate = (options) => {
+    return (
+      <Calendar
+        value={options.value}
+        onChange={(e) => options.filterCallback(e.value, options.index)}
+        dateFormat="dd/mm/yy"
+        placeholder="dd/mm/yyyy"
+        mask="99/99/9999"
+      />
+    );
+  };
+
   // 22222
   const handleChildEditMembers = async () => {
     // ok
@@ -465,7 +527,6 @@ const ProjectDashBoard = () => {
     setSourcePm(event.source);
   };
 
-  // 4444
   const handleListMemberEdit = () => {
     setProject({
       ...project,
@@ -486,6 +547,18 @@ const ProjectDashBoard = () => {
       });
     }
   };
+  const valueFilterTemplate = (options) => {
+    return (
+      <InputNumber
+        value={options.value}
+        onChange={(e) => options.filterCallback(e.value, options.index)}
+        mode="currency"
+        currency="USD"
+        locale="en-US"
+      />
+    );
+  };
+
   const membersDialogFooter = (
     <>
       <Button
@@ -528,24 +601,29 @@ const ProjectDashBoard = () => {
             paginator
             rows={5}
             rowsPerPageOptions={[5, 10, 25]}
+            filterDisplay="menu"
+            // filterDisplay="row"
             className="datatable-responsive"
             emptyMessage="No projects found."
             header={header}
             showGridlines
+            filters={filters}
+            selectionMode="checkbox"
+            selection={selectedProjects}
+            onSelectionChange={(e) => setSelectedProjects(e.value)}
             responsiveLayout="scroll"
           >
             <Column
               field="id"
               header="Id"
+              filter
               // sortable
               // body={codeBodyTemplate}
-              filter
               headerStyle={{ minWidth: "5rem" }}
             ></Column>
             <Column
               field="name"
               header="Name"
-              // sortable
               filter
               body={nameBodyTemplate}
               headerStyle={{ minWidth: "15rem" }}
@@ -553,20 +631,28 @@ const ProjectDashBoard = () => {
             <Column
               field="description"
               header="Description"
+              dataType="date"
               headerStyle={{ minWidth: "15rem" }}
             ></Column>
             <Column
               field="createdAt"
               header="Created At"
+              dataType="date"
               body={createdAtBodyTemplate}
+              // body={dateBodyTemplate}
+              filter
+              filterElement={dateFilterTemplate}
               headerStyle={{ minWidth: "10rem" }}
               // sortable
             ></Column>
             <Column
               field="completedAt"
               header="Completed At"
-              // sortable
+              filter
+              filterElement={dateFilterTemplate}
+              dataType="date"
               body={completedAtBodyTemplate}
+              // body={dateBodyTemplate}
               headerStyle={{ minWidth: "12rem" }}
             ></Column>
             <Column
@@ -584,6 +670,9 @@ const ProjectDashBoard = () => {
               field="value"
               header="Value"
               body={priceBodyTemplate}
+              filter
+              dataType="numeric"
+              filterElement={valueFilterTemplate}
               // sortable
               headerStyle={{ minWidth: "10rem" }}
             ></Column>
@@ -702,7 +791,6 @@ const ProjectDashBoard = () => {
                   id="pm"
                   label="Edit"
                   className="mt-2"
-                  // text
                   severity="success"
                   onClick={() => handleChildEditPm()}
                 />
