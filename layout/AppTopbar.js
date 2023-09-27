@@ -19,6 +19,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
+import ChatRoom from "../demo/components/ChatRoom";
 
 const AppTopbar = forwardRef(function AppTopbar(props, ref) {
   const toast = useRef(null);
@@ -32,6 +33,7 @@ const AppTopbar = forwardRef(function AppTopbar(props, ref) {
   const [changePasswordDialog, setChangePasswordDialog] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [chatRoom, setChatRoom] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       await positionApi.getAll().then((response) => setPositions(response));
@@ -84,6 +86,13 @@ const AppTopbar = forwardRef(function AppTopbar(props, ref) {
         router.push("/auth/login");
       },
     },
+    {
+      label: "Chat Room",
+      icon: "pi pi-telegram",
+      command: () => {
+        setChatRoom(true);
+      },
+    },
   ];
   const saveChangePassword = async () => {
     const username = localStorage.getItem("user");
@@ -123,6 +132,9 @@ const AppTopbar = forwardRef(function AppTopbar(props, ref) {
     setChangePasswordDialog(false);
     setPassword("");
     setConfirmPassword("");
+  };
+  const hideChatRoom = () => {
+    setChatRoom(false);
   };
 
   const changePassDialog = (
@@ -252,6 +264,13 @@ const AppTopbar = forwardRef(function AppTopbar(props, ref) {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </div>
+      </Dialog>
+      <Dialog
+        visible={chatRoom}
+        onHide={hideChatRoom}
+        style={{ width: "20vw" }}
+      >
+        <ChatRoom hideChatRoom={hideChatRoom} />
       </Dialog>
     </div>
   );
