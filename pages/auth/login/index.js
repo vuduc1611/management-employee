@@ -22,7 +22,6 @@ const LoginPage = () => {
     username: null,
     password: null,
   };
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
