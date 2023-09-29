@@ -46,17 +46,18 @@ const DepartmentDashBoard = () => {
       constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }],
     },
   });
-  const fetchData = async () => {
-    try {
-      await positionApi.getAll().then((res) => setPositions(res));
 
-      const resDept = await departmentApi.getAll().then((res) => res);
-      setDepartments(resDept);
-    } catch (error) {
-      console.log(error);
-    }
-  };
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await positionApi.getAll().then((res) => setPositions(res));
+
+        const resDept = await departmentApi.getAll().then((res) => res);
+        setDepartments(resDept);
+      } catch (error) {
+        console.log(error);
+      }
+    };
     fetchData();
   }, [fetchApi]);
   const openNew = () => {

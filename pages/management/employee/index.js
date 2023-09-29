@@ -90,29 +90,29 @@ const EmployeeDashBoard = () => {
   // const auth = useSelector((state) => state.auth);
   // const dispatch = useDispatch();
 
-  const fetchData = async () => {
-    try {
-      // const token = localStorage.getItem("token");
-      // const token = "";
-      const resEmp = await employeeApi.getAllPaginator(lazyParams);
-
-      setEmployees(resEmp.content);
-      setTotalRecords(resEmp.totalElements);
-      setSize(resEmp.size);
-
-      const resPos = await positionApi.getAll();
-      setPositions(resPos);
-
-      const resDept = await departmentApi.getAll();
-      setDepartments(resDept);
-
-      //
-    } catch (error) {
-      console.log("error");
-      console.log(error);
-    }
-  };
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // const token = localStorage.getItem("token");
+        // const token = "";
+        const resEmp = await employeeApi.getAllPaginator(lazyParams);
+
+        setEmployees(resEmp.content);
+        setTotalRecords(resEmp.totalElements);
+        setSize(resEmp.size);
+
+        const resPos = await positionApi.getAll();
+        setPositions(resPos);
+
+        const resDept = await departmentApi.getAll();
+        setDepartments(resDept);
+
+        //
+      } catch (error) {
+        console.log("error");
+        console.log(error);
+      }
+    };
     fetchData();
   }, [lazyParams, eventUpdate]);
 

@@ -37,14 +37,14 @@ const PositionDashBoard = () => {
     },
   });
 
-  const fetchData = async () => {
-    try {
-      await positionApi.getAll().then((res) => setPositions(res));
-    } catch (error) {
-      console.log(error);
-    }
-  };
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await positionApi.getAll().then((res) => setPositions(res));
+      } catch (error) {
+        console.log(error);
+      }
+    };
     fetchData();
   }, [fetchApi]);
   const openNew = () => {

@@ -35,129 +35,128 @@ const Dashboard = () => {
     });
   };
 
-  const fetchData = async () => {
-    const departmentsList = await departmentApi.getAll().then((res) => res);
-    const employeesList = await employeeApi.getAllData().then((res) => res);
-    setEmployees(employeesList);
-    const projectList = await projectApi.getAll().then((res) => res);
-    setProjects(projectList);
+  useEffect(() => {
+    const fetchData = async () => {
+      const departmentsList = await departmentApi.getAll().then((res) => res);
+      const employeesList = await employeeApi.getAllData().then((res) => res);
+      setEmployees(employeesList);
+      const projectList = await projectApi.getAll().then((res) => res);
+      setProjects(projectList);
 
-    const response = await departmentsList.map((department) => ({
-      name: department.name,
-      count: employeesList.filter(
-        (e) => e.departmentId === department.departmentId
-      ).length,
-    }));
+      const response = await departmentsList.map((department) => ({
+        name: department.name,
+        count: employeesList.filter(
+          (e) => e.departmentId === department.departmentId
+        ).length,
+      }));
 
-    const totalValue = projectList.reduce((acc, cur) => {
-      return acc + cur.value;
-    }, 0);
-    setAvgValue(totalValue / projectList.length);
+      const totalValue = projectList.reduce((acc, cur) => {
+        return acc + cur.value;
+      }, 0);
+      setAvgValue(totalValue / projectList.length);
 
-    const documentStyle = getComputedStyle(document.documentElement);
-    const textColor = documentStyle.getPropertyValue("--text-color");
-    const textColorSecondary = documentStyle.getPropertyValue(
-      "--text-color-secondary"
-    );
-    const surfaceBorder = documentStyle.getPropertyValue("--surface-border");
-    const dataPie = await {
-      labels: response.map((d) => d.name),
-      datasets: [
-        {
-          data: response.map((d) => d.count),
-          backgroundColor: response.map((d, index) =>
-            documentStyle.getPropertyValue(`--${color[index]}-500`)
-          ),
-          hoverBackgroundColor: response.map((d, index) =>
-            documentStyle.getPropertyValue(`--${color[index]}-400`)
-          ),
-        },
-      ],
-    };
-    const optionsPie = await {
-      plugins: {
-        legend: {
-          labels: {
-            usePointStyle: true,
+      const documentStyle = getComputedStyle(document.documentElement);
+      const textColor = documentStyle.getPropertyValue("--text-color");
+      const textColorSecondary = documentStyle.getPropertyValue(
+        "--text-color-secondary"
+      );
+      const surfaceBorder = documentStyle.getPropertyValue("--surface-border");
+      const dataPie = await {
+        labels: response.map((d) => d.name),
+        datasets: [
+          {
+            data: response.map((d) => d.count),
+            backgroundColor: response.map((d, index) =>
+              documentStyle.getPropertyValue(`--${color[index]}-500`)
+            ),
+            hoverBackgroundColor: response.map((d, index) =>
+              documentStyle.getPropertyValue(`--${color[index]}-400`)
+            ),
           },
-        },
-      },
-    };
-
-    const newList = {};
-    await projectList.forEach((item) => {
-      const { completedAt, value } = item;
-      const yearRaw = completedAt.split("-")[0];
-      if (newList[yearRaw]) {
-        newList[yearRaw] += value;
-      } else {
-        newList[yearRaw] = value;
-      }
-    });
-
-    const result = await Object.keys(newList)
-      .map((year) => ({
-        year: parseInt(year),
-        value: newList[year],
-      }))
-      .sort((a, b) => a.year - b.year);
-
-    console.log("check result", result);
-
-    let increment =
-      result[result.length - 1].value / result[result.length - 2].value - 1;
-    increment = increment.toFixed(4) * 100;
-    setPercentIncrement(increment);
-    const barData = await {
-      labels: result.map((item) => item.year),
-      datasets: [
-        {
-          label: "Value",
-          backgroundColor: documentStyle.getPropertyValue("--primary-500"),
-          borderColor: documentStyle.getPropertyValue("--primary-500"),
-          data: result.map((item) => item.value),
-        },
-      ],
-    };
-
-    const barOptions = await {
-      plugins: {
-        legend: {
-          labels: {
-            fontColor: textColor,
-          },
-        },
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: textColorSecondary,
-            font: {
-              weight: 500,
+        ],
+      };
+      const optionsPie = await {
+        plugins: {
+          legend: {
+            labels: {
+              usePointStyle: true,
             },
           },
-          grid: {
-            display: false,
-            drawBorder: false,
+        },
+      };
+
+      const newList = {};
+      await projectList.forEach((item) => {
+        const { completedAt, value } = item;
+        const yearRaw = completedAt.split("-")[0];
+        if (newList[yearRaw]) {
+          newList[yearRaw] += value;
+        } else {
+          newList[yearRaw] = value;
+        }
+      });
+
+      const result = await Object.keys(newList)
+        .map((year) => ({
+          year: parseInt(year),
+          value: newList[year],
+        }))
+        .sort((a, b) => a.year - b.year);
+
+      console.log("check result", result);
+
+      let increment =
+        result[result.length - 1].value / result[result.length - 2].value - 1;
+      increment = increment.toFixed(4) * 100;
+      setPercentIncrement(increment);
+      const barData = await {
+        labels: result.map((item) => item.year),
+        datasets: [
+          {
+            label: "Value",
+            backgroundColor: documentStyle.getPropertyValue("--primary-500"),
+            borderColor: documentStyle.getPropertyValue("--primary-500"),
+            data: result.map((item) => item.value),
+          },
+        ],
+      };
+
+      const barOptions = await {
+        plugins: {
+          legend: {
+            labels: {
+              fontColor: textColor,
+            },
           },
         },
-        y: {
-          ticks: {
-            color: textColorSecondary,
+        scales: {
+          x: {
+            ticks: {
+              color: textColorSecondary,
+              font: {
+                weight: 500,
+              },
+            },
+            grid: {
+              display: false,
+              drawBorder: false,
+            },
           },
-          grid: {
-            color: surfaceBorder,
-            drawBorder: false,
+          y: {
+            ticks: {
+              color: textColorSecondary,
+            },
+            grid: {
+              color: surfaceBorder,
+              drawBorder: false,
+            },
           },
         },
-      },
+      };
+
+      await setData({ dataPie, barData });
+      await setOptions({ optionsPie, barOptions });
     };
-
-    await setData({ dataPie, barData });
-    await setOptions({ optionsPie, barOptions });
-  };
-
-  useEffect(() => {
     fetchData();
   }, [layoutConfig]);
 

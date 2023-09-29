@@ -74,14 +74,14 @@ const AdminDashBoard = () => {
   const [user, setUser] = useState(emptyUser);
   const [users, setUsers] = useState([]);
 
-  const fetchData = async () => {
-    try {
-      const a = await userApi.getAll().then((res) => setUsers(res));
-    } catch (error) {
-      console.log(error);
-    }
-  };
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const a = await userApi.getAll().then((res) => setUsers(res));
+      } catch (error) {
+        console.log(error);
+      }
+    };
     fetchData();
   }, []);
   const openNew = () => {
