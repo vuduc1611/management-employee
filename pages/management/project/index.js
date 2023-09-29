@@ -81,6 +81,7 @@ const ProjectDashBoard = () => {
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
       await projectApi.getAll().then((res) => setProjects(getProjects(res)));
       await positionApi.getAll().then((res) => setPositions(res));

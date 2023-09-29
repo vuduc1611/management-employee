@@ -75,6 +75,7 @@ const AdminDashBoard = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
       try {
         const a = await userApi.getAll().then((res) => setUsers(res));

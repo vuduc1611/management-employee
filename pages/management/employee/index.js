@@ -91,6 +91,7 @@ const EmployeeDashBoard = () => {
   // const dispatch = useDispatch();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
       try {
         // const token = localStorage.getItem("token");

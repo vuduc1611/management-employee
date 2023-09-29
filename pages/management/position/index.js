@@ -38,6 +38,7 @@ const PositionDashBoard = () => {
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
       try {
         await positionApi.getAll().then((res) => setPositions(res));

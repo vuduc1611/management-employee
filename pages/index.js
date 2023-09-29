@@ -36,6 +36,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
       const departmentsList = await departmentApi.getAll().then((res) => res);
       const employeesList = await employeeApi.getAllData().then((res) => res);

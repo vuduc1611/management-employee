@@ -41,6 +41,7 @@ export default function OrgChart() {
     },
   ]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchData = async () => {
       await positionApi.getAll().then((res) => setPositions(res));
       await departmentApi.getAll().then((res) => setDepartments(res));
