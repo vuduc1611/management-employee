@@ -16,7 +16,6 @@ import positionApi from "../../api/positionApi";
 import departmentApi from "../../api/departmentApi";
 import { ProgressBar } from "primereact/progressbar";
 import { Image } from "primereact/image";
-import { useSelector, useDispatch } from "react-redux";
 
 const EmployeeDashBoard = () => {
   const emptyEmployee = {
